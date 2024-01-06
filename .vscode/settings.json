@@ -1,0 +1,8 @@
+{
+    "custom-format.formatters": [
+      {
+        "language": "slint",
+        "command": "slint-fmt /dev/stdin"
+      }
+    ]
+  }

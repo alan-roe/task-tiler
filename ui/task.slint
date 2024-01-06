@@ -1,0 +1,48 @@
+import { TimeFormat } from "./timeformat.slint";
+
+export struct TaskStruct {
+    title: string,
+    color: color,
+    abbr: string,
+    info: string,
+    blocks: float,
+    spent: int,
+    allot: int,
+    idx: [int]
+}
+
+export component Task inherits Rectangle {
+    in-out property <TaskStruct> task;
+    callback clicked <=> touch.clicked;
+    border-radius: 4px;
+    border-width: 0px;
+    background: task.color;
+    preferred-height: 160px;
+    preferred-width: 120px * task.blocks;
+    text := Text {
+        text: task.abbr != task.title && task.blocks < 2 ? task.abbr: task.title;
+        x: 8px;
+        y: 8px;
+        font-size: 24px;
+        color: #000;
+    }
+    button := Rectangle {
+        width: 56px;
+        height: 40px;
+        x: 8px;
+        y: parent.y + parent.height - self.height - 8px;
+        background: touch.pressed ? #353535 : touch.has-hover ? #757575 :  #959595;
+        Text {
+            font-size: 16px;
+            text: "Start";
+        }
+        touch := TouchArea { }
+    }
+    timeText := TimeFormat {
+        spent: task.spent;
+        allot: task.allot;
+        font-size: 10px;
+        x: button.x;
+        y: button.y - self.height - 8px;
+    }
+}

@@ -1,0 +1,54 @@
+import { Task, TaskStruct } from "./task.slint";
+import { Info } from "./info.slint";
+import "./../CourierPrime-Regular.ttf";
+
+export { Task, TaskStruct }
+
+export component AppWindow inherits Window {
+    out property<bool> show_info: false;
+    in-out property <[int]> active_task;
+    in-out property <[[TaskStruct]]> tasks: [];
+    default-font-family: "Courier Prime";
+    preferred-width: 480px;
+    preferred-height: 320px;
+
+    public function update_time() {
+        tasks[active-task[0]][active-task[1]].spent += 1;
+    }
+
+    VerticalLayout {
+        padding: 16px;
+        spacing: 8px;
+        if show_info: Info {
+                task: tasks[active-task[0]][active-task[1]];
+                clicked => {
+                    root.show_info = !root.show_info;
+                    
+                }
+            }
+        if !show_info:
+            HorizontalLayout {
+                spacing: 8px;
+                for task in tasks[0]:
+                Task {
+                    task: task;
+                    clicked => {
+                        root.active-task = task.idx;
+                        root.show-info = !root.show-info
+                    }
+                }
+            }
+        if !show_info:
+            HorizontalLayout {
+                spacing: 8px;
+                for task in (tasks[1]):
+                    Task {
+                        task: task;
+                        clicked => {
+                            root.active-task = task.idx;
+                            root.show-info = !root.show-info
+                        }
+                    }
+            }
+    }
+}
