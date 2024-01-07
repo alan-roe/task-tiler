@@ -1797,7 +1797,7 @@ dependencies = [
  "fontdue",
  "i-slint-common",
  "image",
- "itertools",
+ "itertools 0.12.0",
  "linked_hash_set",
  "lyon_extra",
  "lyon_path",
@@ -2047,6 +2047,24 @@ dependencies = [
  "hermit-abi",
  "libc",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "iter_tools"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a621162e5c4229abff44d46655dcb777f6064daa851e046df17baf74c9ddf079"
+dependencies = [
+ "itertools 0.11.0",
+]
+
+[[package]]
+name = "itertools"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
+dependencies = [
+ "either",
 ]
 
 [[package]]
@@ -3646,6 +3664,7 @@ dependencies = [
 name = "tile-tasker"
 version = "0.1.0"
 dependencies = [
+ "iter_tools",
  "slint",
  "slint-build",
 ]
