@@ -2,9 +2,9 @@ use iter_tools::Itertools;
 
 #[derive(Debug)]
 pub struct Task {
-    title: String,
-    allot: u64,
-    info: String,
+    pub title: String,
+    pub allot: u64,
+    pub info: String,
 }
 
 fn load_info<T: AsRef<str>>(info: &[T]) -> String {

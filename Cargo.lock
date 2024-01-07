@@ -3665,6 +3665,7 @@ name = "tile-tasker"
 version = "0.1.0"
 dependencies = [
  "iter_tools",
+ "rand",
  "slint",
  "slint-build",
 ]

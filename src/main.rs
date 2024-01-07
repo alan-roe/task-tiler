@@ -1,15 +1,40 @@
-use std::rc::Rc;
+use std::{iter::Cycle, rc::Rc};
 
 mod parser;
 
 use parser::load_tasks;
+use rand::{seq::SliceRandom, thread_rng};
 use slint::{Color, ModelRc, Timer, TimerMode, VecModel};
 slint::include_modules!();
+
+struct ColorGen {
+    color_bank: Cycle<std::vec::IntoIter<slint::Color>>,
+}
+
+const PALLETE: &[u32] = &[
+    0xffc25e88, 0xffa265af, 0xff5a74cb, 0xff0081ce, 0xff0086b2, 0xff00867e, 0xfffd93bd, 0xffffe4f5,
+];
+
+impl ColorGen {
+    pub fn start_gen() -> ColorGen {
+        let mut color_bank = Vec::from(PALLETE)
+            .iter()
+            .map(|c| Color::from_argb_encoded(*c))
+            .collect::<Vec<Color>>();
+        color_bank.shuffle(&mut thread_rng());
+        ColorGen {
+            color_bank: color_bank.into_iter().cycle(),
+        }
+    }
+    pub fn next_colour(&mut self) -> Color {
+        self.color_bank.next().unwrap()
+    }
+}
 
 fn main() -> Result<(), slint::PlatformError> {
     let tasks_str = r#"- Java
 	- 1hr
-    - First Test
+        - First Test
 		- Study
 		- Second Test
 - Databases
@@ -37,7 +62,20 @@ fn main() -> Result<(), slint::PlatformError> {
 				- else
 					- Start Work
 "#;
+    let mut color_gen = ColorGen::start_gen();
     let t = load_tasks(tasks_str);
+    let t: Vec<TaskStruct> = t.into_iter().map(|task| {
+        TaskStruct {
+            abbr: "".into(),
+            color: color_gen.next_colour(),
+            title: task.title.into(),
+            info: task.info.into(),
+            allot: task.allot as i32,
+            spent: 0,
+            blocks: 3.0,
+            idx: ModelRc::new(VecModel::from(vec![0, 1]))
+        }
+    }).collect();
     println!("{:?}", t);
     let tasks = vec![
         vec![

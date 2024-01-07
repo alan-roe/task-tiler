@@ -9,6 +9,7 @@ build = "build.rs"
 
 [dependencies]
 iter_tools = "0.4.0"
+rand = "0.8.5"
 slint = "1.0"
 
 [build-dependencies]
