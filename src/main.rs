@@ -2,13 +2,12 @@ use std::rc::Rc;
 
 mod parser;
 
+use parser::load_tasks;
 use slint::{Color, ModelRc, Timer, TimerMode, VecModel};
-use parser::{load_tasks, Task};
 slint::include_modules!();
 
 fn main() -> Result<(), slint::PlatformError> {
-    let tasks_str = 
-    r#"- Java
+    let tasks_str = r#"- Java
 	- 1hr
     - First Test
 		- Study
@@ -38,10 +37,10 @@ fn main() -> Result<(), slint::PlatformError> {
 				- else
 					- Start Work
 "#;
-let t = load_tasks(tasks_str);
-println!("{:?}", t);
-let tasks = vec![
-    vec![
+    let t = load_tasks(tasks_str);
+    println!("{:?}", t);
+    let tasks = vec![
+        vec![
             TaskStruct {
                 abbr: "DB".into(),
                 color: Color::from_argb_encoded(0xffc25e88),
@@ -86,7 +85,7 @@ let tasks = vec![
             },
         ],
     ];
-    
+
     let tasks: Vec<ModelRc<TaskStruct>> = tasks
         .into_iter()
         .map(VecModel::from)
@@ -94,7 +93,7 @@ let tasks = vec![
         .map(Into::into)
         .collect();
     let tasks = Rc::new(VecModel::from(tasks));
-    
+
     let ui = AppWindow::new()?;
     let ui_handle = ui.as_weak();
     ui.set_tasks(tasks.into());
