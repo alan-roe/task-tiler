@@ -13,7 +13,7 @@ fn load_info<T: AsRef<str>>(info: &[T]) -> String {
     let tab_size = info_iter[0].chars().take_while(|x| x != &'-').count();
     info_iter
         .into_iter()
-        .map(|mut x| dbg!(x.split_off(dbg!(tab_size))))
+        .map(|mut x| x.split_off(tab_size).replace('\t', "  "))
         .reduce(|acc, s| acc + "\n" + &s)
         .unwrap_or(info[0].as_ref()[tab_size..].to_string())
 }
