@@ -11,7 +11,8 @@ export component AppWindow inherits Window {
     default-font-family: "Courier Prime";
     preferred-width: 480px;
     preferred-height: 320px;
-
+    min-width: 480px;
+    min-height: 320px;
     public function update_time() {
         tasks[active-task[0]][active-task[1]].spent += 1;
     }
