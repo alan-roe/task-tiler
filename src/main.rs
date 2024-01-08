@@ -31,12 +31,36 @@ impl ColorGen {
     }
 }
 
+fn split_tasks(mut tasks: Vec<TaskStruct>) -> Vec<Vec<TaskStruct>> {
+    let mut top: Vec<TaskStruct> = Vec::new();
+    let mut bottom: Vec<TaskStruct> = Vec::new();
+    tasks.sort_by(|t1, t2| t1.blocks.total_cmp(&t2.blocks));
+    let tasks_iter = tasks.into_iter().rev();
+
+    for mut t1 in tasks_iter {
+        let current_top = top.iter().fold(0.0, |acc, x| acc + x.blocks);
+        if current_top + t1.blocks <= 4.0 {
+            t1.idx = ModelRc::new(VecModel::from(vec![0, top.len() as i32]));
+            top.push(t1);
+        } else {
+            bottom.insert(0, t1);
+        }
+    }
+    bottom = bottom.into_iter().enumerate().map(|(i, mut t1)| {
+        t1.idx = ModelRc::new(VecModel::from(vec![1, i as i32]));
+        t1
+    }).collect();
+
+    Vec::from([top, bottom])
+}
+
 fn main() -> Result<(), slint::PlatformError> {
     let tasks_str = r#"- Java
 	- 1hr
-        - First Test
+		- First Test
 		- Study
 		- Second Test
+
 - Databases
 	- 1hr
 		- Assignment Work
@@ -64,67 +88,23 @@ fn main() -> Result<(), slint::PlatformError> {
 "#;
     let mut color_gen = ColorGen::start_gen();
     let t = load_tasks(tasks_str);
+    println!("{:?}", &t);
     let t: Vec<TaskStruct> = t.into_iter().map(|task| {
+        println!("{:?}", &task);
         TaskStruct {
-            abbr: "".into(),
+            abbr: task.title.clone().into(),
             color: color_gen.next_colour(),
             title: task.title.into(),
             info: task.info.into(),
             allot: task.allot as i32,
             spent: 0,
-            blocks: 3.0,
+            blocks: task.blocks,
             idx: ModelRc::new(VecModel::from(vec![0, 1]))
         }
     }).collect();
-    println!("{:?}", t);
-    let tasks = vec![
-        vec![
-            TaskStruct {
-                abbr: "DB".into(),
-                color: Color::from_argb_encoded(0xffc25e88),
-                allot: 60 * 60,
-                blocks: 1.0,
-                spent: 0,
-                title: "Database".into(),
-                info: "- Complete test\n- Complete Lab".into(),
-                idx: ModelRc::new(VecModel::from(vec![0, 0])),
-            },
-            TaskStruct {
-                abbr: "Web".into(),
-                color: Color::from_argb_encoded(0xff0081ce),
-                allot: 60 * 60 * 3,
-                blocks: 3.0,
-                spent: 0,
-                title: "Website".into(),
-                info: "- Finish hire page templates\n- Message about hire page content".into(),
-                idx: ModelRc::new(VecModel::from(vec![0, 1])),
-            },
-        ],
-        vec![
-            TaskStruct {
-                abbr: "Hobby".into(),
-                color: Color::from_argb_encoded(0xff5a74cb),
-                allot: 60 * 60 * 3,
-                blocks: 3.0,
-                spent: 0,
-                title: "Hobby".into(),
-                info: "- Task Manager".into(),
-                idx: ModelRc::new(VecModel::from(vec![1, 0])),
-            },
-            TaskStruct {
-                abbr: "Java".into(),
-                color: Color::from_argb_encoded(0xffa265af),
-                allot: 60 * 60,
-                blocks: 1.0,
-                spent: 0,
-                title: "Java".into(),
-                info: "- Do a test\n- Read the book".into(),
-                idx: ModelRc::new(VecModel::from(vec![1, 1])),
-            },
-        ],
-    ];
+    let t = split_tasks(t);
 
-    let tasks: Vec<ModelRc<TaskStruct>> = tasks
+    let tasks: Vec<ModelRc<TaskStruct>> = t
         .into_iter()
         .map(VecModel::from)
         .map(Rc::new)
