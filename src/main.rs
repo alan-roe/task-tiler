@@ -59,36 +59,16 @@ fn split_tasks(mut tasks: Vec<TaskStruct>) -> Vec<Vec<TaskStruct>> {
 }
 
 fn main() -> Result<(), slint::PlatformError> {
-    let tasks_str = r#"- Java
+    let tasks_str = r#"- Fitness
 	- 1hr
-		- First Test
-		- Study
-		- Second Test
-
-- Databases
+		- find basic bodyweight moves
+		- do them
+- [[Tiling Task Manager]]
 	- 1hr
-		- Assignment Work
-- Hire86 Website
-	- 3 hr
-		- Create all basic product pages
-		- Message them about content
-			- Send theorised layout, be open to differences of opinion
-- Hobby Projects
-	- 3 hr
-		- Maybe I could make something that turns this layout of time management into something more readable, visual. I wish my remarkable was working
-		- There are some interesting designs worth exploring. Perhaps I can mock some up in figma. There's a certain genre of red that I'm looking for, a pale one. I see matching blues and yellows, greens, purple, orange.
-		- Making it an app doesn't seem convenient, maybe an app that can be always on top somewhere, or only chime in when necessary. Or the ESP32 just always running on my desktop. Slint? Too early to decide on implementation? ESP32 would be less portable unless I got it hooked up to batteries with a switch. A phone app would be too much of a battery drain to have open all the time. Maybe an always on top desktop app would jump out of the cursor's way. I can imagine pushing it around the screen, with it popping out the other side when pushed against a wall.
-		- Important for each task
-			- Data:
-				- Title
-				- Time Spent
-			- Actions:
-				- if working
-					- Stop Work
-				- else if any child has children
-					- Open Task
-				- else
-					- Start Work
+		- refactor?
+		- load in files
+		- read minutes
+		- clip titles if overflow
 "#;
     let mut color_gen = ColorGen::start_gen();
     let t = load_tasks(tasks_str);

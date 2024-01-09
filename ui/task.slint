@@ -54,7 +54,7 @@ export component Task inherits Rectangle {
     background: task.color;
     preferred-height: 160px;
     preferred-width: 120px * task.blocks;
-    
+        
     touch := TouchArea{ }
     
     info_background := Rectangle {
@@ -71,6 +71,7 @@ export component Task inherits Rectangle {
         padding: 8px;
         txt := 
             Text {
+                min-width: 64px;
                 text: task.title;
                 font-size: 24px;
                 color: #000;
