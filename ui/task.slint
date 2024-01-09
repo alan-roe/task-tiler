@@ -11,6 +11,7 @@ component TaskButton inherits Rectangle {
     in property <int> allot;
     in property <TaskState> state;
     callback clicked <=> touch.clicked;
+
     HorizontalLayout {
         spacing: 16px;
         Rectangle {
@@ -24,7 +25,9 @@ component TaskButton inherits Rectangle {
             touch := TouchArea { }
         }
         
-        timeText := TimeFormat {
+        TimeFormat {
+            overflow: elide;
+            visible: parent.width > 150px;
             vertical-alignment: TextVerticalAlignment.center;
             spent: spent;
             allot: allot;
@@ -54,6 +57,7 @@ export component Task inherits Rectangle {
     background: task.color;
     preferred-height: 160px;
     preferred-width: 120px * task.blocks;
+    min-width: 120px;
         
     touch := TouchArea{ }
     
