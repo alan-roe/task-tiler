@@ -28,9 +28,16 @@ fn load_task(task: Vec<&str>) -> Task {
 }
 
 fn load_time(trim: &str) -> u64 {
-    trim.find('h')
-        .map(|x| 60 * 60 * (trim[0..x].trim().parse::<u64>().unwrap()))
-        .unwrap_or_default()
+    let mut time = 0;
+    let mut h_idx = 0;
+    if let Some(x) = trim.find('h') {
+        time += 60 * 60 * (trim[0..x].trim().parse::<u64>().unwrap());
+        h_idx = x+1;
+    }
+    if let Some(x) = trim.find('m') {
+        time += 60 * trim[h_idx..x].trim().parse::<u64>().unwrap();
+    } 
+    time
 }
 
 fn generate_blocks(tasks: &[Task]) -> Vec<f32> {
