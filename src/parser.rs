@@ -5,7 +5,6 @@ pub struct Task {
     pub title: String,
     pub allot: u64,
     pub info: String,
-    pub blocks: f32,
 }
 
 fn load_info<T: AsRef<str>>(info: &[T]) -> String {
@@ -22,8 +21,7 @@ fn load_task(task: Vec<&str>) -> Task {
     Task {
         title: task[0].to_string(),
         allot: load_time(&task[1].trim()[2..]),
-        info: load_info(dbg!(&task[2..])),
-        blocks: 1.0,
+        info: load_info(&task[2..]),
     }
 }
 
@@ -32,40 +30,20 @@ fn load_time(trim: &str) -> u64 {
     let mut h_idx = 0;
     if let Some(x) = trim.find('h') {
         time += 60 * 60 * (trim[0..x].trim().parse::<u64>().unwrap());
-        h_idx = x+1;
+        h_idx = x + 2;
     }
     if let Some(x) = trim.find('m') {
         time += 60 * trim[h_idx..x].trim().parse::<u64>().unwrap();
-    } 
+    }
     time
-}
-
-fn generate_blocks(tasks: &[Task]) -> Vec<f32> {
-    let min = tasks
-        .iter()
-        .min_by(|t1, t2| t1.allot.cmp(&t2.allot))
-        .unwrap()
-        .allot;
-    tasks
-        .iter()
-        .map(|task| task.allot as f32 / min as f32)
-        .collect_vec()
 }
 
 /// Loads tasks
 pub fn load_tasks(tasks: &str) -> Vec<Task> {
-    let tasks = tasks[2..]
+    tasks[2..]
         .split("\n- ")
         .map(|split| split.lines().collect_vec())
-        .map(load_task);
-    let mut blocks = generate_blocks(&tasks.clone().collect_vec()).into_iter();
-
-    tasks
-        .map(|mut task| {
-            task.blocks = blocks.next().unwrap();
-            task
-        })
-        .collect_vec()
+        .map(load_task).collect_vec()
 }
 
 mod tests {
@@ -155,14 +133,5 @@ mod tests {
         assert_eq!(tasks_iter.next().unwrap().allot, 60 * 60);
         assert_eq!(tasks_iter.next().unwrap().allot, 60 * 60 * 3);
         assert_eq!(tasks_iter.next().unwrap().allot, 60 * 60 * 3);
-    }
-    #[test]
-    fn load_blocks() {
-        let tasks = _load_tasks();
-        let mut tasks_iter = tasks.iter();
-        assert_eq!(tasks_iter.next().unwrap().blocks, 1.0);
-        assert_eq!(tasks_iter.next().unwrap().blocks, 1.0);
-        assert_eq!(tasks_iter.next().unwrap().blocks, 3.0);
-        assert_eq!(tasks_iter.next().unwrap().blocks, 3.0);
     }
 }

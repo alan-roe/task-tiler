@@ -35,10 +35,11 @@ impl ColorGen {
     }
 }
 
-fn split_tasks<T: DoubleEndedIterator<Item = TaskStruct>>(tasks: T) -> Vec<Vec<TaskStruct>> {
+fn split_tasks(tasks: Vec<TaskStruct>) -> Vec<Vec<TaskStruct>> {
     let mut top: Vec<TaskStruct> = Vec::new();
     let mut bottom: Vec<TaskStruct> = Vec::new();
     tasks
+        .into_iter()
         .sorted_by(|t1, t2| t1.blocks.total_cmp(&t2.blocks))
         .rev()
         .for_each(|mut t1| {
@@ -63,11 +64,20 @@ fn split_tasks<T: DoubleEndedIterator<Item = TaskStruct>>(tasks: T) -> Vec<Vec<T
     Vec::from([top, bottom])
 }
 
+fn generate_blocks(tasks: &[Task]) -> Vec<f32> {
+    let total = tasks.iter().fold(0, |acc, t| acc + t.allot);
+    // let num = tasks.len() as u64;
+    let block_size = total/8;
+    tasks
+        .iter()
+        .map(|task| task.allot as f32 / block_size as f32)
+        .collect_vec()
+}
+
 fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
     let mut color_gen = ColorGen::start_gen();
-
+    let mut blocks = generate_blocks(&tasks).into_iter();
     let tasks: Vec<Vec<TaskStruct>> = split_tasks(tasks.into_iter().map(|task| {
-        println!("{:?}", &task);
         TaskStruct {
             abbr: task.title.clone().into(),
             color: color_gen.next_colour(),
@@ -75,12 +85,12 @@ fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
             info: task.info.into(),
             allot: task.allot as i32,
             spent: 0.0,
-            blocks: task.blocks,
+            blocks: blocks.next().unwrap(),
             idx: ModelRc::new(VecModel::from(vec![0, 1])),
             started: false,
         }
-    }));
-    let slint_tasks: Vec<ModelRc<TaskStruct>> = tasks
+    }).collect_vec());
+    let slint_tasks: Vec<ModelRc<TaskStruct>> = dbg!(tasks)
         .into_iter()
         .map(VecModel::from)
         .map(Rc::new)
@@ -103,7 +113,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let ui = AppWindow::new()?;
     send_tasks(&ui, tasks);
-    
+
     let ui_handle = ui.as_weak();
     let timer = Timer::default();
     let start_timer = Rc::new(timer);
