@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Read;
+use std::time::Instant;
 use std::{iter::Cycle, rc::Rc};
 
 mod parser;
@@ -73,7 +74,7 @@ fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
             title: task.title.into(),
             info: task.info.into(),
             allot: task.allot as i32,
-            spent: 0,
+            spent: 0.0,
             blocks: task.blocks,
             idx: ModelRc::new(VecModel::from(vec![0, 1])),
             started: false,
@@ -101,21 +102,30 @@ fn main() -> Result<(), slint::PlatformError> {
     let tasks = load_tasks(&tasks_str);
 
     let ui = AppWindow::new()?;
-    let ui_handle = ui.as_weak();
-
     send_tasks(&ui, tasks);
-
+    
+    let ui_handle = ui.as_weak();
     let timer = Timer::default();
-    timer.start(
-        TimerMode::Repeated,
-        std::time::Duration::from_millis(1000),
-        move || {
-            let ui = ui_handle.unwrap();
-            if ui.get_task_started() {
-                ui.invoke_update_time();
-            }
-        },
-    );
+    let start_timer = Rc::new(timer);
+    let stop_timer = start_timer.clone();
+    ui.on_start_timer(move || {
+        let instant = Instant::now();
+        let ui_handle = ui_handle.clone();
+        let last_spent = ui_handle.clone().unwrap().get_current_spent();
+        start_timer.start(
+            TimerMode::Repeated,
+            std::time::Duration::from_millis(1000),
+            move || {
+                let ui = ui_handle.unwrap();
+                let time = last_spent + Instant::now().duration_since(instant).as_secs_f32();
+                ui.invoke_update_time(time);
+            },
+        );
+    });
+
+    ui.on_stop_timer(move || {
+        stop_timer.stop();
+    });
 
     ui.run()
 }

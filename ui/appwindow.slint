@@ -9,23 +9,34 @@ export component AppWindow inherits Window {
     in-out property <[int]> active_task;
     in-out property <[int]> selected_task;
     in-out property <[[TaskStruct]]> tasks: [];
+    out property <float> current_spent;
+    callback start_timer();
+    callback stop_timer();
+    
     default-font-family: "Courier Prime";
     preferred-width: 480px;
     preferred-height: 320px;
     min-width: 480px;
     min-height: 320px;
-    public function update_time() {
-        tasks[active-task[0]][active-task[1]].spent += 1;
+    public function update_time(spent: float) {
+        tasks[active-task[0]][active-task[1]].spent = spent;
+        current-spent = spent;
     }
 
     function start_task(idx: [int]) {
-        if (root.task-started && root.active-task != idx) {
-            toggle-started();
+        if (root.task-started) {
+            if (root.active-task != idx) {
+                toggle-started();
+            }
+            stop-timer();
         }
         root.active-task = idx;
         toggle-started();
         root.task-started = tasks[active-task[0]][active-task[1]].started;
-
+        root.current-spent = tasks[active-task[0]][active-task[1]].spent;
+        if (root.task-started) {
+            start-timer();
+        }
     }
 
     function toggle_started() {
