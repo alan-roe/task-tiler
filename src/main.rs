@@ -1,10 +1,11 @@
-use std::{iter::Cycle, rc::Rc};
 use std::fs::File;
 use std::io::Read;
+use std::{iter::Cycle, rc::Rc};
 
 mod parser;
 
-use parser::load_tasks;
+use iter_tools::Itertools;
+use parser::{load_tasks, Task};
 use rand::{seq::SliceRandom, thread_rng};
 use slint::{Color, ModelRc, Timer, TimerMode, VecModel};
 slint::include_modules!();
@@ -33,21 +34,22 @@ impl ColorGen {
     }
 }
 
-fn split_tasks(mut tasks: Vec<TaskStruct>) -> Vec<Vec<TaskStruct>> {
+fn split_tasks<T: DoubleEndedIterator<Item = TaskStruct>>(tasks: T) -> Vec<Vec<TaskStruct>> {
     let mut top: Vec<TaskStruct> = Vec::new();
     let mut bottom: Vec<TaskStruct> = Vec::new();
-    tasks.sort_by(|t1, t2| t1.blocks.total_cmp(&t2.blocks));
-    let tasks_iter = tasks.into_iter().rev();
+    tasks
+        .sorted_by(|t1, t2| t1.blocks.total_cmp(&t2.blocks))
+        .rev()
+        .for_each(|mut t1| {
+            let current_top = top.iter().fold(0.0, |acc, x| acc + x.blocks);
+            if current_top + t1.blocks <= 4.0 {
+                t1.idx = ModelRc::new(VecModel::from(vec![0, top.len() as i32]));
+                top.push(t1);
+            } else {
+                bottom.insert(0, t1);
+            }
+        });
 
-    for mut t1 in tasks_iter {
-        let current_top = top.iter().fold(0.0, |acc, x| acc + x.blocks);
-        if current_top + t1.blocks <= 4.0 {
-            t1.idx = ModelRc::new(VecModel::from(vec![0, top.len() as i32]));
-            top.push(t1);
-        } else {
-            bottom.insert(0, t1);
-        }
-    }
     bottom = bottom
         .into_iter()
         .enumerate()
@@ -60,45 +62,49 @@ fn split_tasks(mut tasks: Vec<TaskStruct>) -> Vec<Vec<TaskStruct>> {
     Vec::from([top, bottom])
 }
 
-fn main() -> Result<(), slint::PlatformError> {
-    let tasks_str: String = File::open("./test.md").map(|mut f| {
-        let mut s = String::new();
-        f.read_to_string(&mut s).expect("couldn't read data from file");
-        s
-    }).unwrap();
+fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
     let mut color_gen = ColorGen::start_gen();
-    let t = load_tasks(&tasks_str);
-    println!("{:?}", &t);
-    let t: Vec<TaskStruct> = t
-        .into_iter()
-        .map(|task| {
-            println!("{:?}", &task);
-            TaskStruct {
-                abbr: task.title.clone().into(),
-                color: color_gen.next_colour(),
-                title: task.title.into(),
-                info: task.info.into(),
-                allot: task.allot as i32,
-                spent: 0,
-                blocks: task.blocks,
-                idx: ModelRc::new(VecModel::from(vec![0, 1])),
-                started: false,
-            }
-        })
-        .collect();
-    let t = split_tasks(t);
 
-    let tasks: Vec<ModelRc<TaskStruct>> = t
+    let tasks: Vec<Vec<TaskStruct>> = split_tasks(tasks.into_iter().map(|task| {
+        println!("{:?}", &task);
+        TaskStruct {
+            abbr: task.title.clone().into(),
+            color: color_gen.next_colour(),
+            title: task.title.into(),
+            info: task.info.into(),
+            allot: task.allot as i32,
+            spent: 0,
+            blocks: task.blocks,
+            idx: ModelRc::new(VecModel::from(vec![0, 1])),
+            started: false,
+        }
+    }));
+    let slint_tasks: Vec<ModelRc<TaskStruct>> = tasks
         .into_iter()
         .map(VecModel::from)
         .map(Rc::new)
         .map(Into::into)
         .collect();
-    let tasks = Rc::new(VecModel::from(tasks));
+    ui.set_tasks(Rc::new(VecModel::from(slint_tasks)).into());
+}
+
+fn main() -> Result<(), slint::PlatformError> {
+    // Load in a test plan
+    let tasks_str: String = File::open("./test.md")
+        .map(|mut f| {
+            let mut s = String::new();
+            f.read_to_string(&mut s)
+                .expect("couldn't read data from file");
+            s
+        })
+        .unwrap();
+    let tasks = load_tasks(&tasks_str);
 
     let ui = AppWindow::new()?;
     let ui_handle = ui.as_weak();
-    ui.set_tasks(tasks.into());
+
+    send_tasks(&ui, tasks);
+
     let timer = Timer::default();
     timer.start(
         TimerMode::Repeated,
