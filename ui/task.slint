@@ -1,5 +1,37 @@
 import { TimeFormat } from "./timeformat.slint";
-import { TaskButton } from "./taskbutton.slint";
+import { ScrollView } from "std-widgets.slint";
+
+enum TaskState {
+    started,
+    stopped
+}
+
+component TaskButton inherits Rectangle {
+    in property <int> spent;
+    in property <int> allot;
+    in property <TaskState> state;
+    callback clicked <=> touch.clicked;
+    HorizontalLayout {
+        spacing: 16px;
+        Rectangle {
+            width: 56px;
+            height: 40px;
+            background: touch.pressed ? #353535 : touch.has-hover ? #757575 :  #959595;
+            Text {
+                font-size: 16px;
+                text: state == TaskState.started ? "Stop" : "Start";
+            }
+            touch := TouchArea { }
+        }
+        
+        timeText := TimeFormat {
+            vertical-alignment: TextVerticalAlignment.center;
+            spent: spent;
+            allot: allot;
+            font-size: 10px;
+        }
+    }
+}
 
 export struct TaskStruct {
     title: string,
@@ -9,27 +41,53 @@ export struct TaskStruct {
     blocks: float,
     spent: int,
     allot: int,
-    idx: [int]
+    idx: [int],
+    started: bool
 }
 
 export component Task inherits Rectangle {
     in-out property <TaskStruct> task;
-    callback clicked <=> button.clicked;
+    callback clicked <=> touch.clicked;
+    callback button_clicked <=> button.clicked;
     border-radius: 4px;
     border-width: 0px;
     background: task.color;
     preferred-height: 160px;
     preferred-width: 120px * task.blocks;
+    
+    touch := TouchArea{ }
+    
+    info_background := Rectangle {
+        border-radius: 4px;
+        x: info.x - 2px;
+        y: info.y - 2px;
+        width: info.width + 2px;
+        height: info.height + 2px;
+        background: task.color.darker(0.1);
+    }
+    
     VerticalLayout {
+        spacing: 8px;
         padding: 8px;
-        alignment: space-between;
-        text := Text {
-            text: task.abbr != task.title && task.blocks < 2 ? task.abbr: task.title;
-            font-size: 24px;
-            color: #000;
-        }
+        txt := 
+            Text {
+                text: task.title;
+                font-size: 24px;
+                color: #000;
+            }
+        info := ScrollView {
+            min-height: 16px;
+            padding-bottom: 8px;
+            viewport-height: inner.height;
+            inner := Text {
+                x: 0;
+                y: 0;
+                width: parent.width;
+                text: task.info;
+                wrap: word-wrap;
+            }}
         button := TaskButton {
-            state: start;
+            state: task.started ? TaskState.started : TaskState.stopped;
             spent: task.spent;
             allot: task.allot;
         }

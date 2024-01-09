@@ -1,12 +1,13 @@
 import { Task, TaskStruct } from "./task.slint";
-import { Info } from "./info.slint";
 import "./../CourierPrime-Regular.ttf";
 
 export { Task, TaskStruct }
 
 export component AppWindow inherits Window {
     out property<bool> show_info: false;
+    out property<bool> task_started: false;
     in-out property <[int]> active_task;
+    in-out property <[int]> selected_task;
     in-out property <[[TaskStruct]]> tasks: [];
     default-font-family: "Courier Prime";
     preferred-width: 480px;
@@ -17,27 +18,46 @@ export component AppWindow inherits Window {
         tasks[active-task[0]][active-task[1]].spent += 1;
     }
 
+    function start_task(idx: [int]) {
+        if (root.task-started && root.active-task != idx) {
+            toggle-started();
+        }
+        root.active-task = idx;
+        toggle-started();
+        root.task-started = tasks[active-task[0]][active-task[1]].started;
+
+    }
+
+    function toggle_started() {
+        tasks[active-task[0]][active-task[1]].started = !tasks[active-task[0]][active-task[1]].started;
+    }
+
     VerticalLayout {
         padding: 16px;
         spacing: 8px;
-        if show_info: Info {
-                task: tasks[active-task[0]][active-task[1]];
+        if show_info: Task {
+                task: tasks[selected-task[0]][selected-task[1]];
                 clicked => {
                     root.show_info = !root.show_info;
-                    
+                }
+                button-clicked => {
+                    start_task(self.task.idx);
                 }
             }
         if !show_info:
             HorizontalLayout {
                 spacing: 8px;
                 for task in tasks[0]:
-                Task {
-                    task: task;
-                    clicked => {
-                        root.active-task = task.idx;
-                        root.show-info = !root.show-info
+                    Task {
+                        task: task;
+                        clicked => {
+                            root.selected_task = task.idx;
+                            root.show-info = !root.show-info;
+                        }
+                        button-clicked => {
+                            start_task(self.task.idx);
+                        }
                     }
-                }
             }
         if !show_info:
             HorizontalLayout {
@@ -46,9 +66,11 @@ export component AppWindow inherits Window {
                     Task {
                         task: task;
                         clicked => {
-                            root.active-task = task.idx;
-                            root.show-info = !root.show-info
+                            root.selected_task = task.idx;
+                            root.show-info = !root.show-info;
                         }
+                        button-clicked => {
+                            start_task(self.task.idx);                    }
                     }
             }
     }

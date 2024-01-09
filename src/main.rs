@@ -46,10 +46,14 @@ fn split_tasks(mut tasks: Vec<TaskStruct>) -> Vec<Vec<TaskStruct>> {
             bottom.insert(0, t1);
         }
     }
-    bottom = bottom.into_iter().enumerate().map(|(i, mut t1)| {
-        t1.idx = ModelRc::new(VecModel::from(vec![1, i as i32]));
-        t1
-    }).collect();
+    bottom = bottom
+        .into_iter()
+        .enumerate()
+        .map(|(i, mut t1)| {
+            t1.idx = ModelRc::new(VecModel::from(vec![1, i as i32]));
+            t1
+        })
+        .collect();
 
     Vec::from([top, bottom])
 }
@@ -89,19 +93,23 @@ fn main() -> Result<(), slint::PlatformError> {
     let mut color_gen = ColorGen::start_gen();
     let t = load_tasks(tasks_str);
     println!("{:?}", &t);
-    let t: Vec<TaskStruct> = t.into_iter().map(|task| {
-        println!("{:?}", &task);
-        TaskStruct {
-            abbr: task.title.clone().into(),
-            color: color_gen.next_colour(),
-            title: task.title.into(),
-            info: task.info.into(),
-            allot: task.allot as i32,
-            spent: 0,
-            blocks: task.blocks,
-            idx: ModelRc::new(VecModel::from(vec![0, 1]))
-        }
-    }).collect();
+    let t: Vec<TaskStruct> = t
+        .into_iter()
+        .map(|task| {
+            println!("{:?}", &task);
+            TaskStruct {
+                abbr: task.title.clone().into(),
+                color: color_gen.next_colour(),
+                title: task.title.into(),
+                info: task.info.into(),
+                allot: task.allot as i32,
+                spent: 0,
+                blocks: task.blocks,
+                idx: ModelRc::new(VecModel::from(vec![0, 1])),
+                started: false,
+            }
+        })
+        .collect();
     let t = split_tasks(t);
 
     let tasks: Vec<ModelRc<TaskStruct>> = t
@@ -121,7 +129,7 @@ fn main() -> Result<(), slint::PlatformError> {
         std::time::Duration::from_millis(1000),
         move || {
             let ui = ui_handle.unwrap();
-            if ui.get_show_info() {
+            if ui.get_task_started() {
                 ui.invoke_update_time();
             }
         },
