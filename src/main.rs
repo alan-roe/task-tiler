@@ -1,4 +1,6 @@
 use std::{iter::Cycle, rc::Rc};
+use std::fs::File;
+use std::io::Read;
 
 mod parser;
 
@@ -59,19 +61,13 @@ fn split_tasks(mut tasks: Vec<TaskStruct>) -> Vec<Vec<TaskStruct>> {
 }
 
 fn main() -> Result<(), slint::PlatformError> {
-    let tasks_str = r#"- Fitness
-	- 1hr
-		- find basic bodyweight moves
-		- do them
-- [[Tiling Task Manager]]
-	- 1hr
-		- refactor?
-		- load in files
-		- read minutes
-		- clip titles if overflow
-"#;
+    let tasks_str: String = File::open("./test.md").map(|mut f| {
+        let mut s = String::new();
+        f.read_to_string(&mut s).expect("couldn't read data from file");
+        s
+    }).unwrap();
     let mut color_gen = ColorGen::start_gen();
-    let t = load_tasks(tasks_str);
+    let t = load_tasks(&tasks_str);
     println!("{:?}", &t);
     let t: Vec<TaskStruct> = t
         .into_iter()
