@@ -24,10 +24,10 @@ component TaskButton inherits Rectangle {
             }
             touch := TouchArea { }
         }
-        
+
         TimeFormat {
             overflow: elide;
-            visible: parent.width > 150px;
+            visible: parent.width > 165px;
             vertical-alignment: TextVerticalAlignment.center;
             spent: spent;
             allot: allot;
@@ -73,7 +73,7 @@ export component Task inherits Rectangle {
     VerticalLayout {
         spacing: 8px;
         padding: 8px;
-        txt := 
+        title := 
             Text {
                 min-width: 64px;
                 text: task.title;
@@ -91,6 +91,13 @@ export component Task inherits Rectangle {
                 text: task.info;
                 wrap: word-wrap;
             }}
+        TimeFormat {
+            height: self.width < 165px ? self.preferred-height : 0px;
+            overflow: elide;
+            spent: task.spent;
+            allot: task.allot;
+            font-size: 10px;
+        }
         button := TaskButton {
             state: task.started ? TaskState.started : TaskState.stopped;
             spent: task.spent;
