@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Read;
+use std::sync::Arc;
 use std::time::SystemTime;
 use std::{iter::Cycle, rc::Rc};
 
@@ -74,74 +75,99 @@ fn generate_blocks(tasks: &[Task]) -> Vec<f32> {
         .collect_vec()
 }
 
-fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
-    let mut color_gen = ColorGen::start_gen();
-    let mut blocks = generate_blocks(&tasks).into_iter();
-    let tasks: Vec<Vec<TaskStruct>> = split_tasks(
-        tasks
+struct Ui {
+    ui: AppWindow,
+    tasks: Arc<Vec<Task>>,
+    timer: Rc<Timer>
+}
+
+impl Ui {
+    fn load_ui(tasks: Arc<Vec<Task>>) -> Result<Self, slint::PlatformError> {
+
+        let ui = AppWindow::new()?;
+        let app = Self {
+            ui,
+            tasks,
+            timer: Rc::new(Timer::default()),
+        };
+
+        app.send_tasks();
+        
+        Ok(app)
+    }
+
+    fn run(&self) -> Result<(), slint::PlatformError> {
+        let ui_handle = self.ui.as_weak();
+        let start_timer = self.timer.clone();
+        let stop_timer = start_timer.clone();
+        self.ui.on_start_timer(move || {
+            let sys_time = SystemTime::now();
+            let ui_handle = ui_handle.clone();
+            let last_spent = ui_handle.clone().unwrap().get_current_spent();
+            start_timer.start(
+                TimerMode::Repeated,
+                std::time::Duration::from_millis(1000),
+                move || {
+                    let elapsed = match sys_time.elapsed() {
+                        Ok(t) => t,
+                        Err(t) => t.duration(),
+                    };
+                    let time = last_spent + elapsed.as_secs_f32();
+                    ui_handle.unwrap().invoke_update_time(time);
+                },
+            );
+        });
+
+        self.ui.on_stop_timer(move || {
+            stop_timer.stop();
+        });
+
+        self.ui.run()
+    }
+
+    fn send_tasks(&self) {
+        let ui = &self.ui;
+        let tasks = &self.tasks;
+        let mut color_gen = ColorGen::start_gen();
+        let mut blocks = generate_blocks(tasks).into_iter();
+        let tasks: Vec<Vec<TaskStruct>> = split_tasks(
+            tasks
+                .iter()
+                .map(|task| TaskStruct {
+                    abbr: task.title.clone().into(),
+                    color: color_gen.next_colour(),
+                    title: (&task.title).into(),
+                    info: (&task.info).into(),
+                    allot: task.allot as i32,
+                    spent: 0.0,
+                    blocks: blocks.next().unwrap(),
+                    idx: ModelRc::new(VecModel::from(vec![0, 1])),
+                    started: false,
+                })
+                .collect_vec(),
+        );
+        let slint_tasks: Vec<ModelRc<TaskStruct>> = dbg!(tasks)
             .into_iter()
-            .map(|task| TaskStruct {
-                abbr: task.title.clone().into(),
-                color: color_gen.next_colour(),
-                title: task.title.into(),
-                info: task.info.into(),
-                allot: task.allot as i32,
-                spent: 0.0,
-                blocks: blocks.next().unwrap(),
-                idx: ModelRc::new(VecModel::from(vec![0, 1])),
-                started: false,
-            })
-            .collect_vec(),
-    );
-    let slint_tasks: Vec<ModelRc<TaskStruct>> = dbg!(tasks)
-        .into_iter()
-        .map(VecModel::from)
-        .map(Rc::new)
-        .map(Into::into)
-        .collect();
-    ui.set_tasks(Rc::new(VecModel::from(slint_tasks)).into());
+            .map(VecModel::from)
+            .map(Rc::new)
+            .map(Into::into)
+            .collect();
+        ui.set_tasks(Rc::new(VecModel::from(slint_tasks)).into());
+    }    
 }
 
 fn main() -> Result<(), slint::PlatformError> {
-    // Load in a test plan
     let tasks_str: String = File::open("./test.md")
-        .map(|mut f| {
-            let mut s = String::new();
-            f.read_to_string(&mut s)
-                .expect("couldn't read data from file");
-            s
-        })
-        .unwrap();
+    .map(|mut f| {
+        let mut s = String::new();
+        f.read_to_string(&mut s)
+            .expect("couldn't read data from file");
+        s
+    })
+    .unwrap();
+
     let tasks = load_tasks(&tasks_str);
-
-    let ui = AppWindow::new()?;
-    send_tasks(&ui, tasks);
-
-    let ui_handle = ui.as_weak();
-    let timer = Timer::default();
-    let start_timer = Rc::new(timer);
-    let stop_timer = start_timer.clone();
-    ui.on_start_timer(move || {
-        let sys_time = SystemTime::now();
-        let ui_handle = ui_handle.clone();
-        let last_spent = ui_handle.clone().unwrap().get_current_spent();
-        start_timer.start(
-            TimerMode::Repeated,
-            std::time::Duration::from_millis(1000),
-            move || {
-                let elapsed = match sys_time.elapsed() {
-                    Ok(t) => t,
-                    Err(t) => t.duration(),
-                };
-                let time = last_spent + elapsed.as_secs_f32();
-                ui_handle.unwrap().invoke_update_time(time);
-            },
-        );
-    });
-
-    ui.on_stop_timer(move || {
-        stop_timer.stop();
-    });
+    let ui: Ui = Ui::load_ui(Arc::new(tasks))?;
 
     ui.run()
 }
