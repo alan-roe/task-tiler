@@ -19,10 +19,14 @@ fn load_info<T: AsRef<str>>(info: &[T]) -> String {
 
 fn load_task(task: Vec<&str>) -> Task {
     Task {
-        title: task[0].to_string(),
+        title: load_title(task[0]),
         allot: load_time(&task[1].trim()[2..]),
         info: load_info(&task[2..]),
     }
+}
+
+fn load_title(task: &str) -> String {
+    task.replace("[[", "").replace("]]", "")
 }
 
 fn load_time(trim: &str) -> u64 {
