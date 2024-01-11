@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::Read;
-use std::time::Instant;
+use std::time::SystemTime;
 use std::{iter::Cycle, rc::Rc};
 
 mod parser;
@@ -67,7 +67,7 @@ fn split_tasks(tasks: Vec<TaskStruct>) -> Vec<Vec<TaskStruct>> {
 fn generate_blocks(tasks: &[Task]) -> Vec<f32> {
     let total = tasks.iter().fold(0, |acc, t| acc + t.allot);
     // let num = tasks.len() as u64;
-    let block_size = total/8;
+    let block_size = total / 8;
     tasks
         .iter()
         .map(|task| task.allot as f32 / block_size as f32)
@@ -77,19 +77,22 @@ fn generate_blocks(tasks: &[Task]) -> Vec<f32> {
 fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
     let mut color_gen = ColorGen::start_gen();
     let mut blocks = generate_blocks(&tasks).into_iter();
-    let tasks: Vec<Vec<TaskStruct>> = split_tasks(tasks.into_iter().map(|task| {
-        TaskStruct {
-            abbr: task.title.clone().into(),
-            color: color_gen.next_colour(),
-            title: task.title.into(),
-            info: task.info.into(),
-            allot: task.allot as i32,
-            spent: 0.0,
-            blocks: blocks.next().unwrap(),
-            idx: ModelRc::new(VecModel::from(vec![0, 1])),
-            started: false,
-        }
-    }).collect_vec());
+    let tasks: Vec<Vec<TaskStruct>> = split_tasks(
+        tasks
+            .into_iter()
+            .map(|task| TaskStruct {
+                abbr: task.title.clone().into(),
+                color: color_gen.next_colour(),
+                title: task.title.into(),
+                info: task.info.into(),
+                allot: task.allot as i32,
+                spent: 0.0,
+                blocks: blocks.next().unwrap(),
+                idx: ModelRc::new(VecModel::from(vec![0, 1])),
+                started: false,
+            })
+            .collect_vec(),
+    );
     let slint_tasks: Vec<ModelRc<TaskStruct>> = dbg!(tasks)
         .into_iter()
         .map(VecModel::from)
@@ -119,16 +122,19 @@ fn main() -> Result<(), slint::PlatformError> {
     let start_timer = Rc::new(timer);
     let stop_timer = start_timer.clone();
     ui.on_start_timer(move || {
-        let instant = Instant::now();
+        let sys_time = SystemTime::now();
         let ui_handle = ui_handle.clone();
         let last_spent = ui_handle.clone().unwrap().get_current_spent();
         start_timer.start(
             TimerMode::Repeated,
             std::time::Duration::from_millis(1000),
             move || {
-                let ui = ui_handle.unwrap();
-                let time = last_spent + Instant::now().duration_since(instant).as_secs_f32();
-                ui.invoke_update_time(time);
+                let elapsed = match sys_time.elapsed() {
+                    Ok(t) => t,
+                    Err(t) => t.duration(),
+                };
+                let time = last_spent + elapsed.as_secs_f32();
+                ui_handle.unwrap().invoke_update_time(time);
             },
         );
     });
