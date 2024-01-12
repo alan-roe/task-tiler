@@ -4,11 +4,14 @@ use std::sync::Arc;
 use std::time::SystemTime;
 use std::{iter::Cycle, rc::Rc};
 
+use rumqttc::{MqttOptions, Client, QoS, Event::*};
+use std::time::Duration;
 mod parser;
 
 use iter_tools::Itertools;
 use parser::{load_tasks, Task};
 use rand::{seq::SliceRandom, thread_rng};
+use rumqttc::Packet;
 use slint::{Color, ModelRc, Timer, TimerMode, VecModel};
 slint::include_modules!();
 
@@ -157,16 +160,35 @@ impl Ui {
 }
 
 fn main() -> Result<(), slint::PlatformError> {
-    let tasks_str: String = File::open("./test.md")
-    .map(|mut f| {
-        let mut s = String::new();
-        f.read_to_string(&mut s)
-            .expect("couldn't read data from file");
-        s
-    })
-    .unwrap();
+    // let tasks_str: String = File::open("./test.md")
+    // .map(|mut f| {
+    //     let mut s = String::new();
+    //     f.read_to_string(&mut s)
+    //         .expect("couldn't read data from file");
+    //     s
+    // })
+    // .unwrap();
+
+    let mut mqttoptions = MqttOptions::new("task-tiler", "192.168.1.153", 1883);
+    mqttoptions.set_credentials("task-tiler", "task-tiler");
+    mqttoptions.set_keep_alive(Duration::from_secs(5));
+
+    let (mut client, mut connection) = Client::new(mqttoptions, 10);
+    client.subscribe("tasks", QoS::AtMostOnce).unwrap();
+    let tasks_str = {
+        let mut payload = Default::default();
+        // Iterate to poll the eventloop for connection progress
+        for event in connection.iter().flatten() {
+            if let Incoming(Packet::Publish(publish)) =  event {
+                payload = String::from_utf8(publish.payload.to_vec()).unwrap();
+                break
+            }
+        }
+        payload
+    };
 
     let tasks = load_tasks(&tasks_str);
+
     let ui: Ui = Ui::load_ui(Arc::new(tasks))?;
 
     ui.run()
