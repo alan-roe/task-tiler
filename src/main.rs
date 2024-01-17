@@ -1,10 +1,10 @@
 use std::fs::File;
 use std::io::Read;
-use std::sync::Arc;
+use std::thread;
 use std::time::SystemTime;
 use std::{iter::Cycle, rc::Rc};
 
-use rumqttc::{MqttOptions, Client, QoS, Event::*};
+use rumqttc::{MqttOptions, Client, QoS, Event::*, ConnectReturnCode};
 use std::time::Duration;
 mod parser;
 
@@ -78,23 +78,76 @@ fn generate_blocks(tasks: &[Task]) -> Vec<f32> {
         .collect_vec()
 }
 
+fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
+    let mut color_gen = ColorGen::start_gen();
+    let mut blocks = generate_blocks(&tasks).into_iter();
+    let tasks: Vec<Vec<TaskStruct>> = split_tasks(
+        tasks
+            .iter()
+            .map(|task| TaskStruct {
+                abbr: task.title.clone().into(),
+                color: color_gen.next_colour(),
+                title: (&task.title).into(),
+                info: (&task.info).into(),
+                allot: task.allot as i32,
+                spent: 0.0,
+                blocks: blocks.next().unwrap(),
+                idx: ModelRc::new(VecModel::from(vec![0, 1])),
+                started: false,
+            })
+            .collect_vec(),
+    );
+    let slint_tasks: Vec<ModelRc<TaskStruct>> = tasks
+        .into_iter()
+        .map(VecModel::from)
+        .map(Rc::new)
+        .map(Into::into)
+        .collect();
+    ui.set_tasks(Rc::new(VecModel::from(slint_tasks)).into());
+}
+
 struct Ui {
     ui: AppWindow,
-    tasks: Arc<Vec<Task>>,
     timer: Rc<Timer>
 }
 
 impl Ui {
-    fn load_ui(tasks: Arc<Vec<Task>>) -> Result<Self, slint::PlatformError> {
+    fn load_ui() -> Result<Self, slint::PlatformError> {
 
         let ui = AppWindow::new()?;
+        let ui_handle = ui.as_weak();
         let app = Self {
             ui,
-            tasks,
             timer: Rc::new(Timer::default()),
         };
 
-        app.send_tasks();
+        thread::spawn(move || {
+            let ui_handle = ui_handle;
+            loop {
+                let mut mqttoptions = MqttOptions::new("task-tiler-rust", "192.168.1.153", 1883);
+                mqttoptions.set_credentials("task-tiler-rust", "task-tiler-rust");
+                mqttoptions.set_keep_alive(Duration::from_secs(5));
+                let (mut client, mut connection) = Client::new(mqttoptions, 10);
+                
+                for event in connection.iter().flatten() {
+                    match event {
+                        Incoming(Packet::ConnAck(connack)) => {
+                            if connack.code == ConnectReturnCode::Success {
+                                client.subscribe("tasks", QoS::AtMostOnce).unwrap();
+                            }
+                        },
+                        Incoming(Packet::Publish(publish)) => {
+                            let ui_handle = ui_handle.clone();
+                            slint::invoke_from_event_loop(move || {
+                                let t = String::from_utf8(publish.payload.to_vec()).unwrap();
+                                send_tasks(&ui_handle.unwrap(), load_tasks(&t));
+                            }).unwrap();
+                        },
+                        _ => {}
+                    }
+                }
+            }
+        });
         
         Ok(app)
     }
@@ -127,36 +180,6 @@ impl Ui {
 
         self.ui.run()
     }
-
-    fn send_tasks(&self) {
-        let ui = &self.ui;
-        let tasks = &self.tasks;
-        let mut color_gen = ColorGen::start_gen();
-        let mut blocks = generate_blocks(tasks).into_iter();
-        let tasks: Vec<Vec<TaskStruct>> = split_tasks(
-            tasks
-                .iter()
-                .map(|task| TaskStruct {
-                    abbr: task.title.clone().into(),
-                    color: color_gen.next_colour(),
-                    title: (&task.title).into(),
-                    info: (&task.info).into(),
-                    allot: task.allot as i32,
-                    spent: 0.0,
-                    blocks: blocks.next().unwrap(),
-                    idx: ModelRc::new(VecModel::from(vec![0, 1])),
-                    started: false,
-                })
-                .collect_vec(),
-        );
-        let slint_tasks: Vec<ModelRc<TaskStruct>> = dbg!(tasks)
-            .into_iter()
-            .map(VecModel::from)
-            .map(Rc::new)
-            .map(Into::into)
-            .collect();
-        ui.set_tasks(Rc::new(VecModel::from(slint_tasks)).into());
-    }    
 }
 
 fn main() -> Result<(), slint::PlatformError> {
@@ -169,27 +192,9 @@ fn main() -> Result<(), slint::PlatformError> {
     // })
     // .unwrap();
 
-    let mut mqttoptions = MqttOptions::new("task-tiler", "192.168.1.153", 1883);
-    mqttoptions.set_credentials("task-tiler", "task-tiler");
-    mqttoptions.set_keep_alive(Duration::from_secs(5));
+    // let tasks = load_tasks(&tasks_str);
 
-    let (mut client, mut connection) = Client::new(mqttoptions, 10);
-    client.subscribe("tasks", QoS::AtMostOnce).unwrap();
-    let tasks_str = {
-        let mut payload = Default::default();
-        // Iterate to poll the eventloop for connection progress
-        for event in connection.iter().flatten() {
-            if let Incoming(Packet::Publish(publish)) =  event {
-                payload = String::from_utf8(publish.payload.to_vec()).unwrap();
-                break
-            }
-        }
-        payload
-    };
-
-    let tasks = load_tasks(&tasks_str);
-
-    let ui: Ui = Ui::load_ui(Arc::new(tasks))?;
+    let ui: Ui = Ui::load_ui()?;
 
     ui.run()
 }
