@@ -10,7 +10,7 @@ async function showMsg(x) {
 
 export const showMsgImpl = x => () => showMsg(x)
 
-export function readyUp(f) {
+export function ready(f) {
   return () => {
     ls.ready(f).catch(console.error);
   }

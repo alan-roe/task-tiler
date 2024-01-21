@@ -5,7 +5,7 @@ import Prelude
 import Control.Promise (fromAff)
 import Effect (Effect)
 import Effect.Console (log)
-import Logseq (readyUp, registerSlashCommand, showMsg)
+import Logseq (ready, registerSlashCommand, showMsg)
 
 sendTasks :: Effect Unit
 sendTasks = do 
@@ -19,5 +19,5 @@ actualMain = do
 main :: Effect Unit
 main = do
   log "🍝"
-  readyUp actualMain
+  ready actualMain
   

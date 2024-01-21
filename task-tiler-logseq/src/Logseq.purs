@@ -18,4 +18,4 @@ foreign import registerSlashCommandImpl :: Fn2 String (Effect Unit) (Effect Unit
 registerSlashCommand ::String -> Effect Unit -> Effect Unit
 registerSlashCommand name f = runFn2 registerSlashCommandImpl name f
 
-foreign import readyUp :: Effect Unit -> Effect Unit
+foreign import ready :: Effect Unit -> Effect Unit
