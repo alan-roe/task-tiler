@@ -1,0 +1,16 @@
+package:
+  name: task-tiler-logseq
+  dependencies:
+    - aff
+    - aff-promise
+    - console
+    - effect
+    - functions
+    - prelude
+  test:
+    main: Test.Main
+    dependencies: []
+workspace:
+  package_set:
+    registry: 48.4.0
+  extra_packages: {}

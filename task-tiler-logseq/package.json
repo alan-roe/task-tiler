@@ -4,11 +4,8 @@
   "private": true,
   "main": "index.html",
   "devDependencies": {
-    "shadow-cljs": "2.26.5"
-  },
-  "dependencies": {
     "@logseq/libs": "^0.0.17",
-    "mqtt": "^3"
+    "mqtt": "^5"
   },
   "logseq": {
     "id": "_rw0rys030"
