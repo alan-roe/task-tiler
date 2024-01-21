@@ -5,11 +5,12 @@ import Prelude
 import Control.Promise (fromAff)
 import Effect (Effect)
 import Effect.Console (log)
-import Logseq (ready, registerSlashCommand, showMsg)
+import Logseq (getCurrentBlock, ready, registerSlashCommand, showMsg)
 
 sendTasks :: Effect Unit
 sendTasks = do 
-  _ <- fromAff $ showMsg "hi from purescript"
+  _ <- fromAff $ showMsg "block.content"
+  _ <- fromAff $ getCurrentBlock
   pure unit
 
 actualMain :: Effect Unit
