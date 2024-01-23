@@ -2,15 +2,18 @@ module Main where
 
 import Prelude
 
-import Control.Promise (fromAff)
+import Data.Maybe (maybe)
 import Effect (Effect)
+import Effect.Aff (Aff)
 import Effect.Console (log)
-import Logseq (getCurrentBlock, ready, registerSlashCommand, showMsg)
+import Logseq (ready, showMsg)
+import Logseq.Editor (content, getCurrentBlock, registerSlashCommand)
 
-sendTasks :: Effect Unit
+
+sendTasks :: Aff Unit
 sendTasks = do 
-  _ <- fromAff $ showMsg "block.content"
-  _ <- fromAff $ getCurrentBlock
+  block <- getCurrentBlock
+  _ <- showMsg $ maybe "invalid block" content block
   pure unit
 
 actualMain :: Effect Unit
