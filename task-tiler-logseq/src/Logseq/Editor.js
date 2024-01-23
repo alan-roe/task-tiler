@@ -26,6 +26,7 @@ export function registerSlashCommandImpl(name, f) {
       }
     }
     return just({
+        parent: block.parent.id,
         children: childrenArr.length > 0 ? just(childrenArr) : nothing,
         content: block.content
       })
