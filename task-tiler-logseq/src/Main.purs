@@ -9,10 +9,13 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), joinWith, split)
 import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 import Effect.Class.Console (logShow)
 import Effect.Console (log)
 import Logseq (ready)
 import Logseq.Editor (BlockEntity(..), getCurrentBlock, registerSlashCommand)
+import Mqtt.Mqtt (connect, publish)
+import Simple.JSON (writeJSON)
 
 type Topic = {
   title :: String,
@@ -30,16 +33,18 @@ loadTopic :: Block -> Maybe Topic
 loadTopic (Block {content, children: [Block {content: timeText, children}]}) = Just {title: content, allot: loadTime timeText, info: loadInfo children}
 loadTopic _ = Nothing
 
-sendTasks :: Aff Unit
-sendTasks = do 
+sendTasks :: (String -> Effect Unit) -> Aff Unit
+sendTasks mqtt = do 
   block <- getCurrentBlock
   blocks <- loadBlocks $ fromMaybe [] (block >>= (\(BlockEntity {children}) -> children))
-  logShow $ map loadTopic blocks
-  pure unit
+  let json = writeJSON $ map loadTopic blocks
+  logShow $ json
+  liftEffect $ mqtt json
 
 actualMain :: Effect Unit
 actualMain = do
-  registerSlashCommand "tiler" sendTasks
+  mqtt <- connect "ws://192.168.1.153:8083" {clientId: "task-tiler", username: "task-tiler", password: "task-tiler"} 
+  registerSlashCommand "tiler" (sendTasks (\x -> publish mqtt "tasks" x {retain: true}))
 
 main :: Effect Unit
 main = do

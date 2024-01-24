@@ -7,6 +7,7 @@ package:
     - effect
     - functions
     - prelude
+    - simple-json
   test:
     main: Test.Main
     dependencies: []
