@@ -1,10 +1,17 @@
 use iter_tools::Itertools;
+use serde::{Serialize, Deserialize};
+use serde_json;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
     pub title: String,
     pub allot: u64,
     pub info: String,
+}
+
+pub fn from_json(json: &str) -> serde_json::Result<Vec<Task>> {
+    let tasks: Vec<Task> = dbg!(serde_json::from_str(json)?);
+    Ok(tasks)
 }
 
 fn load_info<T: AsRef<str>>(info: &[T]) -> String {

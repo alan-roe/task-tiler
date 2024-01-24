@@ -3812,6 +3812,8 @@ dependencies = [
  "iter_tools",
  "rand",
  "rumqttc",
+ "serde",
+ "serde_json",
  "slint",
  "slint-build",
 ]

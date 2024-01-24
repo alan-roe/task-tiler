@@ -1,5 +1,3 @@
-use std::fs::File;
-use std::io::Read;
 use std::thread;
 use std::time::SystemTime;
 use std::{iter::Cycle, rc::Rc};
@@ -140,7 +138,7 @@ impl Ui {
                             let ui_handle = ui_handle.clone();
                             slint::invoke_from_event_loop(move || {
                                 let t = String::from_utf8(publish.payload.to_vec()).unwrap();
-                                send_tasks(&ui_handle.unwrap(), load_tasks(&t));
+                                send_tasks(&ui_handle.unwrap(), parser::from_json(&t).unwrap());
                             }).unwrap();
                         },
                         _ => {}
