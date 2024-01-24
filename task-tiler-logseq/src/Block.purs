@@ -17,7 +17,7 @@ newtype Block = Block {
 
 tabs ∷ Int → String
 tabs 0 = ""
-tabs n = "\t" <> tabs (n-1) 
+tabs n = "  " <> tabs (n-1) 
 
 fmtBlockArr :: Int -> Array Block -> Array String
 fmtBlockArr n blocks = map (fmtBlock n) blocks
