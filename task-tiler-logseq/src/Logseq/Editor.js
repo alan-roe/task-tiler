@@ -1,10 +1,8 @@
-const ls = window.logseq
-
 export function registerSlashCommandImpl(name, f) {
-    return () => {
-      ls.Editor.registerSlashCommand(name, f)
-    }
+  return () => {
+    window.logseq.Editor.registerSlashCommand(name, f)
   }
+}
   
 // fetches an 
 function getEntity(entity, tuple, b) {
@@ -29,7 +27,7 @@ function loadBlock(just, nothing, left, right, block) {
 }
 
 async function getCurrentBlock(just, nothing, left, right) {
-  let block = await ls.Editor.getCurrentBlock();
+  let block = await window.logseq.Editor.getCurrentBlock();
   if(!block) {
     return nothing
   }
@@ -39,7 +37,7 @@ async function getCurrentBlock(just, nothing, left, right) {
 export const getCurrentBlockImpl = just => nothing => left => right => () => getCurrentBlock(just, nothing, left, right)
 
 async function getBlock(just, nothing, left, right, id) {
-  let block = await ls.Editor.getBlock(id);
+  let block = await window.logseq.Editor.getBlock(id);
   if(!block) {
     return nothing;
   }

@@ -2,8 +2,6 @@ module Logseq.Editor
   ( BlockEntity(..)
   , BlockUUID
   , EntityID
-  , children
-  , content
   , getBlock
   , getCurrentBlock
   , registerSlashCommand
@@ -15,9 +13,7 @@ import Prelude
 import Control.Promise (Promise, fromAff, toAffE)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn2, runFn2)
-import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
-import Data.Show.Generic (genericShow)
 import Effect (Effect)
 import Effect.Aff (Aff)
 
@@ -34,18 +30,6 @@ newtype BlockEntity = BlockEntity {
   children :: Maybe (Array (Either BlockEntity BlockUUID)),
   content :: String
 }
-
-derive instance genericBlockEntity :: Generic BlockEntity _
-
-instance showBlockEntity :: Show BlockEntity where
-  show x = genericShow x
-
-content :: BlockEntity -> String
-content (BlockEntity a) = a.content
-
-children :: BlockEntity -> Maybe (Array (Either BlockEntity BlockUUID))
-children (BlockEntity a) = a.children
-
 
 foreign import getCurrentBlockImpl ::  forall a x y. (a -> Maybe a) -> Maybe a -> (x -> Either x y) -> (y -> Either x y) -> Effect (Promise (Maybe BlockEntity))
 
