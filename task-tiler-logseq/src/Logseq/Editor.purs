@@ -46,13 +46,14 @@ content (BlockEntity a) = a.content
 children :: BlockEntity -> Maybe (Array (Either BlockEntity BlockUUID))
 children (BlockEntity a) = a.children
 
-foreign import getCurrentBlockImpl :: (forall x. x -> Maybe x) -> (forall x. Maybe x) -> (forall x y. x -> Either x y) -> (forall x y. y -> Either x y) -> Effect (Promise (Maybe BlockEntity))
+
+foreign import getCurrentBlockImpl ::  forall a x y. (a -> Maybe a) -> Maybe a -> (x -> Either x y) -> (y -> Either x y) -> Effect (Promise (Maybe BlockEntity))
 
 getCurrentBlock :: Aff (Maybe BlockEntity)
 getCurrentBlock = toAffE $ getCurrentBlockImpl Just Nothing Left Right
 
-foreign import getBlockNImpl :: (forall x. x -> Maybe x) -> (forall x. Maybe x) -> (forall x y. x -> Either x y) -> (forall x y. y -> Either x y) -> EntityID -> Effect (Promise (Maybe BlockEntity))
-foreign import getBlockUImpl :: (forall x. x -> Maybe x) -> (forall x. Maybe x) -> (forall x y. x -> Either x y) -> (forall x y. y -> Either x y) -> BlockUUID -> Effect (Promise (Maybe BlockEntity))
+foreign import getBlockNImpl :: forall a x y. (a -> Maybe a) -> Maybe a -> (x -> Either x y) -> (y -> Either x y) -> EntityID -> Effect (Promise (Maybe BlockEntity))
+foreign import getBlockUImpl :: forall a x y. (a -> Maybe a) -> Maybe a -> (x -> Either x y) -> (y -> Either x y) -> BlockUUID -> Effect (Promise (Maybe BlockEntity))
 
 getBlock :: Either EntityID BlockUUID -> Aff (Maybe BlockEntity)
 getBlock e = toAffE
