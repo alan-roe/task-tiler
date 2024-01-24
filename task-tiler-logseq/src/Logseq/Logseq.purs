@@ -1,4 +1,8 @@
-module Logseq where
+module Logseq
+  ( ready
+  , showMsg
+  )
+  where
 
 import Prelude
 
