@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.html",
   "scripts": {
-    "start": "webpack --devtool=source-map --watch --mode=development",
+    "watch": "spago build && webpack --devtool=source-map --watch --mode=development",
     "build": "spago build && webpack --devtool=source-map --mode=development",
     "build:dist": "spago build && webpack --mode=production"
   },
