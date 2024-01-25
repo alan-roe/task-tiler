@@ -1,4 +1,4 @@
-import mqtt from "mqtt"
+import mqtt from '../../node_modules/mqtt/dist/mqtt.esm.js';
 
 export function connectImpl(addr, opt) {
     return () => {
@@ -6,8 +6,8 @@ export function connectImpl(addr, opt) {
     }
 }
 
-export function publishImpl(client, topic, msg) {
+export function publishImpl(client, topic, msg, opts) {
     return () => {
-        client.publish(topic, msg, {retain: true})
+        client.publish(topic, msg, opts)
     }
 }

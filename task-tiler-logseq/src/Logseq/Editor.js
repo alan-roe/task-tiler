@@ -15,7 +15,7 @@ function getEntity(entity, tuple, b) {
 function loadBlock(just, nothing, left, right, block) {
   let childrenArr = [];
   if(block.children) {
-    for(child of block.children) {
+    for(const child of block.children) {
       childrenArr.push(getEntity(left, right, child))
     }
   }

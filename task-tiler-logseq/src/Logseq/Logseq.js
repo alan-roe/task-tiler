@@ -1,5 +1,5 @@
 "use strict"
-const logseq = require("@logseq/libs")
+import * as logseq from "../../node_modules/@logseq/libs/dist/lsplugin.user.js"
 
 // logseq
 export function ready(f) {

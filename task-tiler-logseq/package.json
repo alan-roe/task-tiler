@@ -3,9 +3,21 @@
   "version": "0.0.1",
   "private": true,
   "main": "index.html",
-  "devDependencies": {
+  "scripts": {
+    "start": "webpack --devtool=source-map --watch --mode=development",
+    "build": "spago build && webpack --devtool=source-map --mode=development",
+    "build:dist": "spago build && webpack --mode=production"
+  },
+  "dependencies": {
     "@logseq/libs": "^0.0.17",
     "mqtt": "^5"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^12.0.2",
+    "html-webpack-plugin": "^5.6.0",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   },
   "logseq": {
     "id": "_rw0rys030"
