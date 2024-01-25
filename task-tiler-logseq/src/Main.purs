@@ -3,7 +3,7 @@ module Main where
 import Prelude
 
 import Block (Block(..), fmtBlockArr, loadBlocks)
-import Data.Array (head)
+import Data.Array (head, mapMaybe)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), joinWith, split)
@@ -37,7 +37,7 @@ sendTasks :: (String -> Effect Unit) -> Aff Unit
 sendTasks mqtt = do 
   block <- getCurrentBlock
   blocks <- loadBlocks $ fromMaybe [] (block >>= (\(BlockEntity {children}) -> children))
-  let json = writeJSON $ map loadTopic blocks
+  let json = writeJSON $ mapMaybe loadTopic blocks
   logShow $ json
   liftEffect $ mqtt json
 
