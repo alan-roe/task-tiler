@@ -9,6 +9,7 @@ workspace:
         - effect
         - functions
         - prelude
+        - quickcheck
         - simple-json
       test_dependencies: []
       build_plan:
@@ -37,6 +38,7 @@ workspace:
         - integers
         - invariant
         - lazy
+        - lcg
         - lists
         - maybe
         - newtype
@@ -49,6 +51,8 @@ workspace:
         - partial
         - prelude
         - profunctor
+        - quickcheck
+        - random
         - record
         - refs
         - safe-coerce
@@ -822,6 +826,17 @@ packages:
       - foldable-traversable
       - invariant
       - prelude
+  lcg:
+    type: registry
+    version: 4.0.0
+    integrity: sha256-h7ME5cthLfbgJOJdsZcSfFpwXsx4rf8YmhebU+3iSYg=
+    dependencies:
+      - effect
+      - integers
+      - maybe
+      - partial
+      - prelude
+      - random
   lists:
     type: registry
     version: 7.0.0
@@ -943,6 +958,45 @@ packages:
       - newtype
       - prelude
       - tuples
+  quickcheck:
+    type: registry
+    version: 8.0.1
+    integrity: sha256-ZvpccKQCvgslTXZCNmpYW4bUsFzhZd/kQUr2WmxFTGY=
+    dependencies:
+      - arrays
+      - console
+      - control
+      - effect
+      - either
+      - enums
+      - exceptions
+      - foldable-traversable
+      - gen
+      - identity
+      - integers
+      - lazy
+      - lcg
+      - lists
+      - maybe
+      - newtype
+      - nonempty
+      - numbers
+      - partial
+      - prelude
+      - record
+      - st
+      - strings
+      - tailrec
+      - transformers
+      - tuples
+      - unfoldable
+  random:
+    type: registry
+    version: 6.0.0
+    integrity: sha256-CJ611a35MPCE7XQMp0rdC6MCn76znlhisiCRgboAG+Q=
+    dependencies:
+      - effect
+      - integers
   record:
     type: registry
     version: 4.0.0
