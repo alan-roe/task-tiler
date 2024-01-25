@@ -17,17 +17,17 @@ import Simple.JSON (writeJSON)
 import Topic (loadTopic)
 
 sendTasks :: (String -> Effect Unit) -> Aff Unit
-sendTasks mqtt = do 
+sendTasks mqtt = do
   block <- getCurrentBlock
-  blocks <- loadBlocks $ fromMaybe [] (block >>= (\(BlockEntity {children}) -> children))
+  blocks <- loadBlocks $ fromMaybe [] (block >>= (\(BlockEntity { children }) -> children))
   let json = writeJSON $ mapMaybe loadTopic blocks
   logShow $ json
   liftEffect $ mqtt json
 
 actualMain :: Effect Unit
 actualMain = do
-  mqtt <- connect "ws://192.168.1.153:8083" {clientId: "task-tiler", username: "task-tiler", password: "task-tiler"} 
-  registerSlashCommand "tiler" (sendTasks (\x -> publish mqtt "tasks" x {retain: true}))
+  mqtt <- connect "ws://192.168.1.153:8083" { clientId: "task-tiler", username: "task-tiler", password: "task-tiler" }
+  registerSlashCommand "tiler" (sendTasks (\x -> publish mqtt "tasks" x { retain: true }))
 
 main :: Effect Unit
 main = do

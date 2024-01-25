@@ -5,8 +5,7 @@ module Logseq.Editor
   , getBlock
   , getCurrentBlock
   , registerSlashCommand
-  )
-  where
+  ) where
 
 import Prelude
 
@@ -19,19 +18,19 @@ import Effect.Aff (Aff)
 
 foreign import registerSlashCommandImpl :: Fn2 String (Effect (Promise Unit)) (Effect Unit)
 
-registerSlashCommand ::String -> Aff Unit -> Effect Unit
+registerSlashCommand :: String -> Aff Unit -> Effect Unit
 registerSlashCommand name f = runFn2 registerSlashCommandImpl name (fromAff f)
 
 type BlockUUID = String
 type EntityID = Int
 
-newtype BlockEntity = BlockEntity {
-  parent :: EntityID,
-  children :: Maybe (Array (Either BlockEntity BlockUUID)),
-  content :: String
-}
+newtype BlockEntity = BlockEntity
+  { parent :: EntityID
+  , children :: Maybe (Array (Either BlockEntity BlockUUID))
+  , content :: String
+  }
 
-foreign import getCurrentBlockImpl ::  forall a x y. (a -> Maybe a) -> Maybe a -> (x -> Either x y) -> (y -> Either x y) -> Effect (Promise (Maybe BlockEntity))
+foreign import getCurrentBlockImpl :: forall a x y. (a -> Maybe a) -> Maybe a -> (x -> Either x y) -> (y -> Either x y) -> Effect (Promise (Maybe BlockEntity))
 
 getCurrentBlock :: Aff (Maybe BlockEntity)
 getCurrentBlock = toAffE $ getCurrentBlockImpl Just Nothing Left Right

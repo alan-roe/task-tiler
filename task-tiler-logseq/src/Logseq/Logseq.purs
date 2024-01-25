@@ -1,8 +1,7 @@
 module Logseq
   ( ready
   , showMsg
-  )
-  where
+  ) where
 
 import Prelude
 

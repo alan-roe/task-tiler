@@ -5,17 +5,17 @@ import Prelude
 import Data.Function.Uncurried (Fn2, Fn4, runFn2, runFn4)
 import Effect (Effect)
 
-type IClientPublishOptions = {
-    retain :: Boolean
-}
+type IClientPublishOptions =
+  { retain :: Boolean
+  }
 
 foreign import data MqttClient :: Type
 
-type IClientOptions = {
-    clientId :: String,
-    username :: String,
-    password :: String
-}
+type IClientOptions =
+  { clientId :: String
+  , username :: String
+  , password :: String
+  }
 
 foreign import connectImpl :: Fn2 String IClientOptions (Effect MqttClient)
 
