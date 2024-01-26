@@ -5,7 +5,7 @@
 This plugin serves as a bridge between Logseq and the [Task Tiler Client](../task-tiler-slint/). It converts tasks into a structured format and sends them to an MQTT broker, making them accessible to the client.
 
 ## Usage
-The format of a task in logseq is as follows:
+The format of a collection of topics/tasks in logseq should be as follows:
 
 ![task tiler logseq format](.github/images/example_format.png)
 
