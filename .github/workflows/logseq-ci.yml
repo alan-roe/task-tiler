@@ -1,0 +1,73 @@
+# based on CI from Jordan Martinez
+# https://github.com/JordanMartinez/purescript-jordans-reference/blob/latestRelease/03-Build-Tools/04-Continuous-Integration/03-spago-next-based.yml
+name: CI
+
+# Run CI when a PR is opened against the branch `main`
+# and when one pushes a commit to `main`.
+on:
+  push:
+    paths:
+      - task-tiler-logseq/**
+    branches: [main]
+  pull_request:
+    paths:
+      - task-tiler-logseq/**
+    branches: [main]
+
+# Run CI on all 3 latest OSes
+jobs:
+  build:
+    defaults:
+      run:
+        working-directory: ./task-tiler-logseq
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node toolchain
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: .npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Setup PureScript tooling
+        run: npm i -g purescript@latest purs-tidy@latest spago@next
+
+      - name: Install NPM dependencies
+        run: npm install
+
+      - name: Cache PureScript dependencies
+        uses: actions/cache@v3
+        with:
+          key: ${{ runner.os }}-spago-${{ hashFiles('**/*.dhall') }}
+          path: |
+            ./task-tiler-logseq/.spago
+            ./task-tiler-logseq/output
+
+      - name: Build the project
+        run: |
+          npx spago build
+
+      - name: Run tests
+        run: |
+          npx spago test
+
+      - name: Check Formatting
+        if: runner.os == 'Linux'
+        run: |
+          purs-tidy check src test
