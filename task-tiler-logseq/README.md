@@ -9,7 +9,7 @@ The format of a collection of topics/tasks in logseq should be as follows:
 
 ![task tiler logseq format](.github/images/example_format.png)
 
-Once installed and configured, simply use the /tiler command anywhere within the #tile-tasker tree to send the tasks to the MQTT broker.
+Once installed and configured, simply use the /tiler command anywhere within the #task-tiler tree to send the tasks to the MQTT broker.
 
 ## Installation and Configuration
 
@@ -19,6 +19,8 @@ Once installed and configured, simply use the /tiler command anywhere within the
 ## Functionality
 
 - [x]   Send tasks to server
+- [ ]   Read task logbook entries to determine time spent
+- [ ]   Configure broker details in logseq settings
 - [ ]   Receive tasks from server and update blocks
 
 ## Developing
