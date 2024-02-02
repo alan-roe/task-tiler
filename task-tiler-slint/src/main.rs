@@ -2,16 +2,46 @@ use std::thread;
 use std::time::SystemTime;
 use std::{iter::Cycle, rc::Rc};
 
-use rumqttc::{MqttOptions, Client, QoS, Event::*, ConnectReturnCode};
 use std::time::Duration;
 mod parser;
 
 use iter_tools::Itertools;
 use parser::{load_tasks, Task};
 use rand::{seq::SliceRandom, thread_rng};
-use rumqttc::Packet;
 use slint::{Color, ModelRc, Timer, TimerMode, VecModel};
 slint::include_modules!();
+
+use async_trait::async_trait;
+use ezsockets::ClientConfig;
+use std::io::BufRead;
+
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+
+struct Client {
+    task_sender: Sender<String>
+}
+
+#[async_trait]
+impl ezsockets::ClientExt for Client {
+    type Call = ();
+
+    async fn on_text(&mut self, text: String) -> Result<(), ezsockets::Error> {
+        println!("received message: {text}");
+        self.task_sender.send(text).expect("can't send tasks");
+        Ok(())
+    }
+
+    async fn on_binary(&mut self, bytes: Vec<u8>) -> Result<(), ezsockets::Error> {
+        println!("received bytes: {bytes:?}");
+        Ok(())
+    }
+
+    async fn on_call(&mut self, call: Self::Call) -> Result<(), ezsockets::Error> {
+        let () = call;
+        Ok(())
+    }
+}
 
 struct ColorGen {
     color_bank: Cycle<std::vec::IntoIter<slint::Color>>,
@@ -110,7 +140,7 @@ struct Ui {
 }
 
 impl Ui {
-    fn load_ui() -> Result<Self, slint::PlatformError> {
+    fn load_ui(task_receiver: Receiver<String>) -> Result<Self, slint::PlatformError> {
 
         let ui = AppWindow::new()?;
         let ui_handle = ui.as_weak();
@@ -122,27 +152,11 @@ impl Ui {
         thread::spawn(move || {
             let ui_handle = ui_handle;
             loop {
-                let mut mqttoptions = MqttOptions::new("task-tiler-rust", "192.168.1.153", 1883);
-                mqttoptions.set_credentials("task-tiler-rust", "task-tiler-rust");
-                mqttoptions.set_keep_alive(Duration::from_secs(5));
-                let (mut client, mut connection) = Client::new(mqttoptions, 10);
-                
-                for event in connection.iter().flatten() {
-                    match event {
-                        Incoming(Packet::ConnAck(connack)) => {
-                            if connack.code == ConnectReturnCode::Success {
-                                client.subscribe("tasks", QoS::AtMostOnce).unwrap();
-                            }
-                        },
-                        Incoming(Packet::Publish(publish)) => {
-                            let ui_handle = ui_handle.clone();
-                            slint::invoke_from_event_loop(move || {
-                                let t = String::from_utf8(publish.payload.to_vec()).unwrap();
-                                send_tasks(&ui_handle.unwrap(), parser::from_json(&t).unwrap());
-                            }).unwrap();
-                        },
-                        _ => {}
-                    }
+                for task_str in task_receiver.recv() {
+                    let ui_handle = ui_handle.clone();
+                    slint::invoke_from_event_loop(move || {
+                        send_tasks(&ui_handle.unwrap(), parser::from_json(&task_str).unwrap());
+                    }).unwrap();
                 }
             }
         });
@@ -180,7 +194,8 @@ impl Ui {
     }
 }
 
-fn main() -> Result<(), slint::PlatformError> {
+#[tokio::main]
+async fn main() -> Result<(), slint::PlatformError> {
     // let tasks_str: String = File::open("./test.md")
     // .map(|mut f| {
     //     let mut s = String::new();
@@ -192,7 +207,14 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // let tasks = load_tasks(&tasks_str);
 
-    let ui: Ui = Ui::load_ui()?;
+    let config = ClientConfig::new("ws://localhost:8080/websocket");
+    let (task_sender, task_receiver) = mpsc::channel();
+    let (handle, future) = ezsockets::connect(|_client| Client {task_sender}, config).await;
+    tokio::spawn(async move {
+        future.await.unwrap();
+    });
+
+    let ui: Ui = Ui::load_ui(task_receiver)?;
 
     ui.run()
 }
