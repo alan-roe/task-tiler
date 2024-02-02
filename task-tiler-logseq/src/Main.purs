@@ -12,9 +12,9 @@ import Effect.Class.Console (logShow)
 import Effect.Console (log)
 import Logseq (ready)
 import Logseq.Editor (BlockEntity(..), getCurrentBlock, registerSlashCommand)
-import Mqtt.Mqtt (connect, publish)
 import Simple.JSON (writeJSON)
 import Topic (loadTopic)
+import Web.Socket.WebSocket (create, sendString)
 
 sendTasks :: (String -> Effect Unit) -> Aff Unit
 sendTasks mqtt = do
@@ -26,8 +26,8 @@ sendTasks mqtt = do
 
 actualMain :: Effect Unit
 actualMain = do
-  mqtt <- connect "ws://192.168.1.153:8083" { clientId: "task-tiler", username: "task-tiler", password: "task-tiler" }
-  registerSlashCommand "tiler" (sendTasks (\x -> publish mqtt "tasks" x { retain: true }))
+  websocket <- create "ws://localhost:8080/websocket" []
+  registerSlashCommand "tiler" (sendTasks $ sendString websocket)
 
 main :: Effect Unit
 main = do

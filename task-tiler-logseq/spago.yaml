@@ -9,6 +9,7 @@ package:
     - prelude
     - quickcheck
     - simple-json
+    - web-socket
   test:
     main: Test.Main
     dependencies: []

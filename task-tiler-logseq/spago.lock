@@ -11,10 +11,12 @@ workspace:
         - prelude
         - quickcheck
         - simple-json
+        - web-socket
       test_dependencies: []
       build_plan:
         - aff
         - aff-promise
+        - arraybuffer-types
         - arrays
         - bifunctors
         - console
@@ -41,6 +43,7 @@ workspace:
         - lcg
         - lists
         - maybe
+        - media-types
         - newtype
         - nonempty
         - nullable
@@ -67,6 +70,10 @@ workspace:
         - unfoldable
         - unsafe-coerce
         - variant
+        - web-dom
+        - web-events
+        - web-file
+        - web-socket
   package_set:
     address:
       registry: 48.4.0
@@ -570,6 +577,11 @@ packages:
     dependencies:
       - aff
       - foreign
+  arraybuffer-types:
+    type: registry
+    version: 3.0.2
+    integrity: sha256-mQKokysYVkooS4uXbO+yovmV/s8b138Ws3zQvOwIHRA=
+    dependencies: []
   arrays:
     type: registry
     version: 7.3.0
@@ -863,6 +875,13 @@ packages:
       - invariant
       - newtype
       - prelude
+  media-types:
+    type: registry
+    version: 6.0.0
+    integrity: sha256-n/4FoGBasbVSYscGVRSyBunQ6CZbL3jsYL+Lp01mc9k=
+    dependencies:
+      - newtype
+      - prelude
   newtype:
     type: registry
     version: 5.0.0
@@ -1142,3 +1161,33 @@ packages:
       - record
       - tuples
       - unsafe-coerce
+  web-dom:
+    type: registry
+    version: 6.0.0
+    integrity: sha256-1kSKWFDI4LupdmpjK01b1MMxDFW7jvatEgPgVmCmSBQ=
+    dependencies:
+      - web-events
+  web-events:
+    type: registry
+    version: 4.0.0
+    integrity: sha256-YDt8b6u1tzGtnWyNRodne57iO8FNSGPaTCVzBUyUn4k=
+    dependencies:
+      - datetime
+      - enums
+      - foreign
+      - nullable
+  web-file:
+    type: registry
+    version: 4.0.0
+    integrity: sha256-1h5jPBkvjY71jLEdwVadXCx86/2inNoMBO//Rd3eCSU=
+    dependencies:
+      - foreign
+      - media-types
+      - web-dom
+  web-socket:
+    type: registry
+    version: 4.0.0
+    integrity: sha256-xz46Q/rdJPNdLhq8QsyfxBoc2CTRXzgbwAj8oqV//C4=
+    dependencies:
+      - arraybuffer-types
+      - web-file
