@@ -1,4 +1,3 @@
-use std::thread;
 use std::time::SystemTime;
 use std::{iter::Cycle, rc::Rc};
 
@@ -136,7 +135,8 @@ fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
 
 struct Ui {
     ui: AppWindow,
-    timer: Rc<Timer>
+    timer: Rc<Timer>,
+    receive_timer: Rc<Timer>
 }
 
 impl Ui {
@@ -147,18 +147,19 @@ impl Ui {
         let app = Self {
             ui,
             timer: Rc::new(Timer::default()),
+            receive_timer: Rc::new(Timer::default()),
         };
 
-        thread::spawn(move || {
-            let ui_handle = ui_handle;
-            loop {
-                for task_str in task_receiver.recv() {
+        app.receive_timer.start(
+            TimerMode::Repeated,
+            Duration::from_millis(1000),
+            move || {
+                if let Ok(task_str) = task_receiver.try_recv() {
                     let ui_handle = ui_handle.clone();
                     slint::invoke_from_event_loop(move || {
                         send_tasks(&ui_handle.unwrap(), parser::from_json(&task_str).unwrap());
                     }).unwrap();
                 }
-            }
         });
         
         Ok(app)
@@ -174,7 +175,7 @@ impl Ui {
             let last_spent = ui_handle.clone().unwrap().get_current_spent();
             start_timer.start(
                 TimerMode::Repeated,
-                std::time::Duration::from_millis(1000),
+                Duration::from_millis(1000),
                 move || {
                     let elapsed = match sys_time.elapsed() {
                         Ok(t) => t,
@@ -209,10 +210,7 @@ async fn main() -> Result<(), slint::PlatformError> {
 
     let config = ClientConfig::new("ws://localhost:8080/websocket");
     let (task_sender, task_receiver) = mpsc::channel();
-    let (handle, future) = ezsockets::connect(|_client| Client {task_sender}, config).await;
-    tokio::spawn(async move {
-        future.await.unwrap();
-    });
+    let (_handle, _future) = ezsockets::connect(|_client| Client {task_sender}, config).await;
 
     let ui: Ui = Ui::load_ui(task_receiver)?;
 
