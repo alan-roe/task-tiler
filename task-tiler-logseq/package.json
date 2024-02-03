@@ -9,8 +9,7 @@
     "build:dist": "spago build && webpack --mode=production"
   },
   "dependencies": {
-    "@logseq/libs": "^0.0.17",
-    "mqtt": "^5"
+    "@logseq/libs": "^0.0.17"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^12.0.2",

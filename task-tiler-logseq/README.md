@@ -2,7 +2,7 @@
 
 ## Overview
 
-This plugin serves as a bridge between Logseq and the [Task Tiler Client](../task-tiler-slint/). It converts tasks into a structured format and sends them to an MQTT broker, making them accessible to the client.
+This plugin serves as a bridge between Logseq and the [Task Tiler Client](../task-tiler-slint/). It converts tasks into a structured format and sends them via websocket to the [Task Tiler Server](../task-tiler-server/), making them accessible to the client.
 
 ## Usage
 The format of a collection of topics/tasks in logseq should be as follows:
@@ -14,13 +14,12 @@ Once installed and configured, simply use the /tiler command anywhere within the
 ## Installation and Configuration
 
 - [ ]   Installation/Configuration guide
-- [ ]   Steps to configure the MQTT broker connection.
 
 ## Functionality
 
 - [x]   Send tasks to server
 - [ ]   Read task logbook entries to determine time spent
-- [ ]   Configure broker details in logseq settings
+- [ ]   Configure server details in logseq settings
 - [ ]   Receive tasks from server and update blocks
 
 ## Developing
