@@ -3,9 +3,11 @@ package:
   dependencies:
     - aff
     - aff-promise
+    - avar
     - console
     - effect
     - functions
+    - js-timers
     - prelude
     - quickcheck
     - simple-json

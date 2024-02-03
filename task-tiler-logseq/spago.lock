@@ -5,9 +5,11 @@ workspace:
       dependencies:
         - aff
         - aff-promise
+        - avar
         - console
         - effect
         - functions
+        - js-timers
         - prelude
         - quickcheck
         - simple-json
@@ -18,6 +20,7 @@ workspace:
         - aff-promise
         - arraybuffer-types
         - arrays
+        - avar
         - bifunctors
         - console
         - const
@@ -39,6 +42,7 @@ workspace:
         - identity
         - integers
         - invariant
+        - js-timers
         - lazy
         - lcg
         - lists
@@ -601,6 +605,17 @@ packages:
       - tuples
       - unfoldable
       - unsafe-coerce
+  avar:
+    type: registry
+    version: 5.0.0
+    integrity: sha256-e7hf0x4hEpcygXP0LtvfvAQ49Bbj2aWtZT3gqM///0A=
+    dependencies:
+      - aff
+      - effect
+      - either
+      - exceptions
+      - functions
+      - maybe
   bifunctors:
     type: registry
     version: 6.0.0
@@ -829,6 +844,12 @@ packages:
     dependencies:
       - control
       - prelude
+  js-timers:
+    type: registry
+    version: 6.1.0
+    integrity: sha256-znHWLSSOYw15P5DTcsAdal2lf7nGA2yayLdOZ2t5r7o=
+    dependencies:
+      - effect
   lazy:
     type: registry
     version: 6.0.0
