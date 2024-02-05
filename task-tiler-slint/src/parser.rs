@@ -1,11 +1,10 @@
 use iter_tools::Itertools;
 use serde::{Serialize, Deserialize};
-use serde_json;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
     pub title: String,
     pub allot: u64,
+    pub spent: u64,
     pub info: String,
 }
 
@@ -28,6 +27,7 @@ fn load_task(task: Vec<&str>) -> Task {
     Task {
         title: load_title(task[0]),
         allot: load_time(&task[1].trim()[2..]),
+        spent: 0,
         info: load_info(&task[2..]),
     }
 }

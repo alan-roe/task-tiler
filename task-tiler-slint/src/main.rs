@@ -120,7 +120,7 @@ fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
                 title: (&task.title).into(),
                 info: (&task.info).into(),
                 allot: task.allot as i32,
-                spent: 0.0,
+                spent: task.spent as f32,
                 blocks: blocks.next().unwrap(),
                 idx: ModelRc::new(VecModel::from(vec![0, 1])),
                 started: false,
