@@ -129,7 +129,7 @@ async fn main() {
         sessions: HashMap::new(),
         handle,
     });
-    ezsockets::tungstenite::run(server, "127.0.0.1:8080")
+    ezsockets::tungstenite::run(server, "0.0.0.0:8080")
         .await
         .unwrap();
 }
