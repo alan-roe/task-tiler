@@ -15,6 +15,7 @@ The Task Tiler Client, currently available as a desktop and web application, ena
 - [ ]   Edit tasks
 - [ ]   Send updated tasks back to broker
 - [ ]   ESP32 client
+- [ ]   Configure server address
 - [x]   Web client
 
 ## Installation and Setup
@@ -23,7 +24,11 @@ The Task Tiler Client, currently available as a desktop and web application, ena
 - [ ]   Instructions for linking with Logseq
 
 ## Building from source
+#### Desktop
 To run the desktop client use `cargo run --features desktop`
 
+#### Web
 To build a wasm package and launch a server use `cargo run --target wasm32-unknown-unknown --features web --release`
-I use the `--release` flag because the debug build runs very slowly. It uses [wasm-server-runner](https://github.com/jakobhellermann/wasm-server-runner) as the runner. 
+I use the `--release` flag because the debug build runs very slowly. 
+
+The runner in use is [wasm-server-runner](https://github.com/jakobhellermann/wasm-server-runner), with some environment variables specified in the [config.toml](.cargo/config.toml) specifying the [index.html](./index.html) (based on wasm-server-runner default with a canvas element for slint to access) and the address.
