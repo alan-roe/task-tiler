@@ -1,7 +1,10 @@
-use std::time::SystemTime;
 use std::{iter::Cycle, rc::Rc};
 
 use std::time::Duration;
+#[cfg(not(target_family="wasm"))]
+use std::time::SystemTime;
+#[cfg(target_family="wasm")]
+use wasmtimer::std::SystemTime;
 mod parser;
 
 use iter_tools::Itertools;
@@ -195,6 +198,7 @@ impl Ui {
     }
 }
 
+#[cfg(not(target_family = "wasm"))]
 #[tokio::main]
 async fn main() -> Result<(), slint::PlatformError> {
     // let tasks_str: String = File::open("./test.md")
@@ -215,4 +219,29 @@ async fn main() -> Result<(), slint::PlatformError> {
     let ui: Ui = Ui::load_ui(task_receiver)?;
 
     ui.run()
+}
+
+#[cfg(target_family = "wasm")]
+#[wasm_bindgen::prelude::wasm_bindgen(main)]
+async fn main() -> Result<(), wasm_bindgen::JsValue> {
+    use std::sync::Arc;
+    console_error_panic_hook::set_once();
+    tracing_wasm::set_as_global_default();
+
+    let config = ClientConfig::new("ws://192.168.1.203:8080/websocket").socket_config(ezsockets::SocketConfig {
+        heartbeat_ping_msg_fn: Arc::new(|_t: Duration| ezsockets::RawMessage::Binary("ping".into())),
+        ..Default::default()
+    });
+    let (task_sender, task_receiver) = mpsc::channel();
+    let (_client, mut handle) = ezsockets::connect_with(
+        |_client| Client {task_sender},
+        config,
+        ezsockets::ClientConnectorWasm::default(),
+    );
+
+    let ui: Ui = Ui::load_ui(task_receiver).unwrap();
+
+    ui.run();
+
+    Ok(())
 }
