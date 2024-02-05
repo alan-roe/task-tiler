@@ -16,6 +16,7 @@ enum Message {
 struct TaskServer {
     sessions: HashMap<SessionID, Session>,
     handle: Server<Self>,
+    tasks: String,
 }
 
 #[async_trait]
@@ -40,6 +41,9 @@ impl ezsockets::ServerExt for TaskServer {
             socket,
         );
         self.sessions.insert(id, session.clone());
+        if !self.tasks.is_empty() {
+            session.text(&self.tasks).unwrap();
+        }
         Ok(session)
     }
 
@@ -74,6 +78,7 @@ impl ezsockets::ServerExt for TaskServer {
                         .collect::<Vec<_>>()
                         .join(",")
                 );
+                self.tasks = text.clone();
                 for session in sessions {
                     session.text(text.clone()).unwrap();
                 }
@@ -128,6 +133,7 @@ async fn main() {
     let (server, _) = Server::create(|handle| TaskServer {
         sessions: HashMap::new(),
         handle,
+        tasks: String::new(),
     });
     ezsockets::tungstenite::run(server, "0.0.0.0:8080")
         .await
