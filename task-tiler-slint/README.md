@@ -23,7 +23,9 @@ The Task Tiler Client, currently available as a desktop and web application, ena
 - [ ]   Installation guide
 - [ ]   Instructions for linking with Logseq
 
-## Building from source
+## Developing and building from source
+The vscode [settings.json](.vscode/settings.json) can be modified to have rust-analyzer use the desktop or web feature-set for accurate cargo check/clippy suggestions within the editor.
+
 #### Desktop
 To run the desktop client use `cargo run --features desktop`
 

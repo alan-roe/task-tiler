@@ -4,5 +4,6 @@
         "language": "slint",
         "command": "slint-fmt /dev/stdin"
       }
-    ]
+    ],
+    "rust-analyzer.check.features": ["desktop"]
   }
