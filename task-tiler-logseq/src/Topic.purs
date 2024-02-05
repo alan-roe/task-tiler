@@ -40,17 +40,18 @@ loadTime s =
 loadSpent :: Block -> Int
 loadSpent (Block { content, children }) = readLogbook content + (sum $ map loadSpent children)
   where
-    readLogbook :: String -> Int
-    readLogbook s = 
-      case split (Pattern ":LOGBOOK:") s of
-        [_, log] -> 
-          case split (Pattern " =>  ") log of
-            [_, time] -> parseTime ((split (Pattern ":") <<< take 8) time)
-            _ -> 0
-        _ -> 0
-    parseTime :: Array String -> Int
-    parseTime [hrs, mins, secs] = (fromMaybe 0 (fromString hrs)) * 60 * 60 + (fromMaybe 0 (fromString mins)) * 60 + (fromMaybe 0 (fromString secs))
-    parseTime _ = 0
+  readLogbook :: String -> Int
+  readLogbook s =
+    case split (Pattern ":LOGBOOK:") s of
+      [ _, log ] ->
+        case split (Pattern " =>  ") log of
+          [ _, time ] -> parseTime ((split (Pattern ":") <<< take 8) time)
+          _ -> 0
+      _ -> 0
+
+  parseTime :: Array String -> Int
+  parseTime [ hrs, mins, secs ] = (fromMaybe 0 (fromString hrs)) * 60 * 60 + (fromMaybe 0 (fromString mins)) * 60 + (fromMaybe 0 (fromString secs))
+  parseTime _ = 0
 
 loadInfo :: Array Block -> String
 loadInfo bs = joinWith "\n" $ fmtBlockArr 0 bs

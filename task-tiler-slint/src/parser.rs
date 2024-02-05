@@ -1,5 +1,5 @@
 use iter_tools::Itertools;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
     pub title: String,
@@ -54,7 +54,8 @@ pub fn load_tasks(tasks: &str) -> Vec<Task> {
     tasks[2..]
         .split("\n- ")
         .map(|split| split.lines().collect_vec())
-        .map(load_task).collect_vec()
+        .map(load_task)
+        .collect_vec()
 }
 
 mod tests {

@@ -1,9 +1,9 @@
 use std::{iter::Cycle, rc::Rc};
 
 use std::time::Duration;
-#[cfg(not(target_family="wasm"))]
+#[cfg(not(target_family = "wasm"))]
 use std::time::SystemTime;
-#[cfg(target_family="wasm")]
+#[cfg(target_family = "wasm")]
 use wasmtimer::std::SystemTime;
 mod parser;
 
@@ -17,11 +17,11 @@ use async_trait::async_trait;
 use ezsockets::ClientConfig;
 use std::io::BufRead;
 
-use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
+use std::sync::mpsc::{Receiver, Sender};
 
 struct Client {
-    task_sender: Sender<String>
+    task_sender: Sender<String>,
 }
 
 #[async_trait]
@@ -139,12 +139,11 @@ fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
 struct Ui {
     ui: AppWindow,
     timer: Rc<Timer>,
-    receive_timer: Rc<Timer>
+    receive_timer: Rc<Timer>,
 }
 
 impl Ui {
     fn load_ui(task_receiver: Receiver<String>) -> Result<Self, slint::PlatformError> {
-
         let ui = AppWindow::new()?;
         let ui_handle = ui.as_weak();
         let app = Self {
@@ -161,10 +160,12 @@ impl Ui {
                     let ui_handle = ui_handle.clone();
                     slint::invoke_from_event_loop(move || {
                         send_tasks(&ui_handle.unwrap(), parser::from_json(&task_str).unwrap());
-                    }).unwrap();
+                    })
+                    .unwrap();
                 }
-        });
-        
+            },
+        );
+
         Ok(app)
     }
 
@@ -214,7 +215,7 @@ async fn main() -> Result<(), slint::PlatformError> {
 
     let config = ClientConfig::new("ws://localhost:8080/websocket");
     let (task_sender, task_receiver) = mpsc::channel();
-    let (_handle, _future) = ezsockets::connect(|_client| Client {task_sender}, config).await;
+    let (_handle, _future) = ezsockets::connect(|_client| Client { task_sender }, config).await;
 
     let ui: Ui = Ui::load_ui(task_receiver)?;
 
@@ -228,13 +229,17 @@ async fn main() -> Result<(), wasm_bindgen::JsValue> {
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
 
-    let config = ClientConfig::new("ws://192.168.1.203:8080/websocket").socket_config(ezsockets::SocketConfig {
-        heartbeat_ping_msg_fn: Arc::new(|_t: Duration| ezsockets::RawMessage::Binary("ping".into())),
-        ..Default::default()
-    });
+    let config = ClientConfig::new("ws://192.168.1.203:8080/websocket").socket_config(
+        ezsockets::SocketConfig {
+            heartbeat_ping_msg_fn: Arc::new(|_t: Duration| {
+                ezsockets::RawMessage::Binary("ping".into())
+            }),
+            ..Default::default()
+        },
+    );
     let (task_sender, task_receiver) = mpsc::channel();
     let (_client, mut handle) = ezsockets::connect_with(
-        |_client| Client {task_sender},
+        |_client| Client { task_sender },
         config,
         ezsockets::ClientConnectorWasm::default(),
     );

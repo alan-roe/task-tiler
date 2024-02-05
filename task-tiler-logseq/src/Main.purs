@@ -23,24 +23,25 @@ import Web.Socket.WebSocket (WebSocket, create, readyState, sendString)
 
 findTaskTilerParent :: Maybe BlockEntity -> Aff (Maybe BlockEntity)
 findTaskTilerParent Nothing = pure Nothing
-findTaskTilerParent (Just (block@(BlockEntity {parent, content}))) = do
-  if any (\pat -> contains (Pattern pat) content) ["#plan", "#task-tiler"] then
-    pure (Just block) else
+findTaskTilerParent (Just (block@(BlockEntity { parent, content }))) = do
+  if any (\pat -> contains (Pattern pat) content) [ "#plan", "#task-tiler" ] then
+    pure (Just block)
+  else
     getBlock (Left parent) >>= findTaskTilerParent
-  
+
 sendTasks :: AV.AVar WebSocket -> Aff Unit
 sendTasks avarWs = do
   mBlock <- getCurrentBlock >>= findTaskTilerParent
   case mBlock of
     Nothing -> do
-      _ <- showMsg "Task Tiler: Couldn't find parent with #plan or #task-tiler tag" 
+      _ <- showMsg "Task Tiler: Couldn't find parent with #plan or #task-tiler tag"
       pure unit
     Just block -> do
-      case block of 
-        BlockEntity {children: Nothing} -> do 
+      case block of
+        BlockEntity { children: Nothing } -> do
           _ <- showMsg "Task Tiler: Invalid task tiler block, no children"
           pure unit
-        BlockEntity {children: (Just childs)} -> do
+        BlockEntity { children: (Just childs) } -> do
           mBlocks <- loadBlocks childs
           case mapMaybe loadTopic mBlocks of
             [] -> do
@@ -54,7 +55,6 @@ sendTasks avarWs = do
                 case maybeWs of
                   Just ws -> sendString ws json
                   Nothing -> logShow $ "Failed to send last message, couldn't get websocket connction"
-            
 
 replaceSocket :: AV.AVar WebSocket -> Effect Unit
 replaceSocket avarWs = do
