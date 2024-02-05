@@ -5,7 +5,7 @@ import Prelude
 import Block (loadBlocks)
 import Data.Array (any, mapMaybe)
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Data.String (Pattern(..), contains)
 import Effect (Effect)
 import Effect.AVar (AVar, new, tryPut, tryRead, tryTake) as AV
@@ -14,7 +14,7 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (logShow)
 import Effect.Console (log)
 import Effect.Timer (setInterval)
-import Logseq (ready)
+import Logseq (ready, showMsg)
 import Logseq.Editor (BlockEntity(..), getBlock, getCurrentBlock, registerSlashCommand)
 import Simple.JSON (writeJSON)
 import Topic (loadTopic)
@@ -30,15 +30,31 @@ findTaskTilerParent (Just (block@(BlockEntity {parent, content}))) = do
   
 sendTasks :: AV.AVar WebSocket -> Aff Unit
 sendTasks avarWs = do
-  block <- getCurrentBlock >>= findTaskTilerParent
-  blocks <- loadBlocks $ fromMaybe [] (block >>= (\(BlockEntity { children }) -> children))
-  let json = writeJSON $ mapMaybe loadTopic blocks
-  logShow $ json
-  liftEffect do
-    maybeWs <- AV.tryRead avarWs
-    case maybeWs of
-      Just ws -> sendString ws json
-      Nothing -> logShow $ "Failed to send last message, couldn't get websocket connction"
+  mBlock <- getCurrentBlock >>= findTaskTilerParent
+  case mBlock of
+    Nothing -> do
+      _ <- showMsg "Task Tiler: Couldn't find parent with #plan or #task-tiler tag" 
+      pure unit
+    Just block -> do
+      case block of 
+        BlockEntity {children: Nothing} -> do 
+          _ <- showMsg "Task Tiler: Invalid task tiler block, no children"
+          pure unit
+        BlockEntity {children: (Just childs)} -> do
+          mBlocks <- loadBlocks childs
+          case mapMaybe loadTopic mBlocks of
+            [] -> do
+              _ <- showMsg "Task Tiler: Invalid task layout"
+              pure unit
+            blocks -> do
+              let json = writeJSON blocks
+              logShow $ json
+              liftEffect do
+                maybeWs <- AV.tryRead avarWs
+                case maybeWs of
+                  Just ws -> sendString ws json
+                  Nothing -> logShow $ "Failed to send last message, couldn't get websocket connction"
+            
 
 replaceSocket :: AV.AVar WebSocket -> Effect Unit
 replaceSocket avarWs = do
