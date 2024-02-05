@@ -3,8 +3,10 @@ module Main where
 import Prelude
 
 import Block (loadBlocks)
-import Data.Array (mapMaybe)
+import Data.Array (any, mapMaybe)
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.String (Pattern(..), contains)
 import Effect (Effect)
 import Effect.AVar (AVar, new, tryPut, tryRead, tryTake) as AV
 import Effect.Aff (Aff)
@@ -13,15 +15,22 @@ import Effect.Class.Console (logShow)
 import Effect.Console (log)
 import Effect.Timer (setInterval)
 import Logseq (ready)
-import Logseq.Editor (BlockEntity(..), getCurrentBlock, registerSlashCommand)
+import Logseq.Editor (BlockEntity(..), getBlock, getCurrentBlock, registerSlashCommand)
 import Simple.JSON (writeJSON)
 import Topic (loadTopic)
 import Web.Socket.ReadyState (ReadyState(..)) as RS
 import Web.Socket.WebSocket (WebSocket, create, readyState, sendString)
 
+findTaskTilerParent :: Maybe BlockEntity -> Aff (Maybe BlockEntity)
+findTaskTilerParent Nothing = pure Nothing
+findTaskTilerParent (Just (block@(BlockEntity {parent, content}))) = do
+  if any (\pat -> contains (Pattern pat) content) ["#plan", "#task-tiler"] then
+    pure (Just block) else
+    getBlock (Left parent) >>= findTaskTilerParent
+  
 sendTasks :: AV.AVar WebSocket -> Aff Unit
 sendTasks avarWs = do
-  block <- getCurrentBlock
+  block <- getCurrentBlock >>= findTaskTilerParent
   blocks <- loadBlocks $ fromMaybe [] (block >>= (\(BlockEntity { children }) -> children))
   let json = writeJSON $ mapMaybe loadTopic blocks
   logShow $ json
