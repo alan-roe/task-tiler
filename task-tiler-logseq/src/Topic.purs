@@ -2,7 +2,7 @@ module Topic where
 
 import Prelude
 
-import Block (Block(..), fmtBlockArr)
+import Block (Block(..))
 import Data.Array (mapMaybe)
 import Data.Foldable (sum)
 import Data.Int (fromString)
@@ -58,8 +58,18 @@ loadSpent (Block { content, children }) = readLogbook content + (sum $ map loadS
   parseTime [ hrs, mins, secs ] = (fromMaybe 0 (fromString hrs)) * 60 * 60 + (fromMaybe 0 (fromString mins)) * 60 + (fromMaybe 0 (fromString secs))
   parseTime _ = 0
 
+tabs ∷ Int → String
+tabs 0 = ""
+tabs n = "  " <> tabs (n - 1)
+
+fmtInfoArr :: Int -> Array Block -> Array String
+fmtInfoArr n blocks = map (fmtInfo n) blocks
+
+fmtInfo :: Int -> Block -> String
+fmtInfo n (Block { content, children }) = joinWith "\n" $ [ tabs n <> "- " <> removeLogbook content ] <> (fmtInfoArr (n + 1) children)
+
 loadInfo :: Array Block -> String
-loadInfo bs = joinWith "\n" $ fmtBlockArr 0 bs
+loadInfo bs = joinWith "\n" $ fmtInfoArr 0 bs
 
 removeLogbook :: String -> String
 removeLogbook s =
