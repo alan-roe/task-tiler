@@ -1,5 +1,5 @@
 import { TimeFormat } from "./timeformat.slint";
-import { ScrollView } from "std-widgets.slint";
+import { ListView } from "std-widgets.slint";
 
 enum TaskState {
     started,
@@ -36,11 +36,25 @@ component TaskButton inherits Rectangle {
     }
 }
 
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+enum CheckBoxState {
+    none,
+    todo,
+    doing,
+    done
+}
+
+export struct InfoStruct {
+    info: string,
+    tabs: string,
+    checkbox: CheckBoxState
+}
+
 export struct TaskStruct {
     title: string,
     color: color,
     abbr: string,
-    info: string,
+    info: [InfoStruct],
     blocks: float,
     spent: float,
     allot: int,
@@ -63,16 +77,17 @@ export component Task inherits Rectangle {
     
     info_background := Rectangle {
         border-radius: 4px;
-        x: info.x - 2px;
-        y: info.y - 2px;
-        width: info.width + 4px;
-        height: info.height + 4px;
+        x: infoview.x - 2px;
+        y: infoview.y - 2px;
+        width: infoview.width + 4px;
+        height: infoview.height + 4px;
         background: task.color.darker(0.1);
     }
     
     VerticalLayout {
         spacing: 8px;
         padding: 8px;
+        alignment: stretch;
         title := 
             Text {
                 min-width: 64px;
@@ -80,17 +95,15 @@ export component Task inherits Rectangle {
                 font-size: 24px;
                 color: #000;
             }
-        info := ScrollView {
+        infoview := ListView {
             min-height: 16px;
             padding-bottom: 8px;
-            viewport-height: inner.height;
-            inner := Text {
-                x: 0;
-                y: 0;
-                width: parent.width;
-                text: task.info;
+            
+            for info in task.info : Text {
+                text: info.tabs + info.info;
                 wrap: word-wrap;
-            }}
+            }
+        }
         TimeFormat {
             height: self.width < 165px ? self.preferred-height : 0px;
             overflow: elide;

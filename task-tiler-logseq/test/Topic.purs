@@ -4,15 +4,14 @@ import Prelude
 
 import Block (Block(..))
 import Control.Monad.Gen (chooseInt)
-import Data.Array (fold, length, replicate)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Console (log)
 import Test.Block (genBlock)
 import Test.QuickCheck (arbitrary, quickCheckGen, (<?>))
-import Test.QuickCheck.Gen (Gen, arrayOf, listOf)
-import Topic (loadTime, loadTopic, fmtInfo, fmtInfoArr)
+import Test.QuickCheck.Gen (Gen, arrayOf)
+import Topic (loadTime, loadTopic, fmtInfo)
 
 type TimeStr = String
 
@@ -50,28 +49,6 @@ genTimeStr = do
 
 timeTests :: Effect Unit
 timeTests = do
-  log "blocks with no children format with content"
-  quickCheckGen do
-    tabs <- chooseInt 0 10
-    block@(Block { content, children }) <- genBlock false
-    pure $
-      ( if length children == 0 then
-          eq (fmtInfo tabs block) (fold (replicate tabs "  ") <> "- " <> content)
-        else false
-      ) <?> "Test failed for input:\n" <> fmtInfo tabs block
-
-  log "first block of array always formatted with n tabs"
-  quickCheckGen do
-    tabs <- chooseInt 0 10
-    blocks <- listOf 10 $ genBlock false
-    let blockArr = listToArray blocks
-    pure $
-      ( eq
-          (fmtInfoArr tabs blockArr)
-          (map (\(Block { content }) -> fold (replicate tabs "  ") <> "- " <> content) blockArr)
-      )
-        <?> "Test failed for input:\n" <> show (fmtInfoArr tabs (blockArr))
-
   log "load hours"
   quickCheckGen do
     h <- chooseInt 1 8
@@ -115,7 +92,7 @@ loadTopicTests = do
   quickCheckGen do
     noTimeTopicBlock <- genBlock true
     pure $
-      eq (loadTopic noTimeTopicBlock).allot 0 <?> "Test failed for input:\n" <> fmtInfo 0 noTimeTopicBlock
+      eq (loadTopic noTimeTopicBlock).allot 0 <?> "Test failed for input:\n" <> (show $ fmtInfo 0 noTimeTopicBlock)
 
   log "load correct time allotted"
   quickCheckGen do
@@ -124,4 +101,4 @@ loadTopicTests = do
     m <- chooseInt 1 60
     let timeTopicBlock = insertTimeBlock (mkTimeStr h m) noTimeTopicBlock
     pure $
-      eq (loadTopic timeTopicBlock).allot (h * 60 * 60 + m * 60) <?> "Test failed for input:\n" <> fmtInfo 0 timeTopicBlock
+      eq (loadTopic timeTopicBlock).allot (h * 60 * 60 + m * 60) <?> "Test failed for input:\n" <> (show $ fmtInfo 0 timeTopicBlock)

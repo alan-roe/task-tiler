@@ -3,17 +3,42 @@ module Topic where
 import Prelude
 
 import Block (Block(..))
-import Data.Array (mapMaybe)
+import Data.Array (concatMap, cons, mapMaybe)
 import Data.Foldable (sum)
+import Data.Generic.Rep (class Generic)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.String (Pattern(..), joinWith, split, stripPrefix, take, trim)
+import Data.Show.Generic (genericShow)
+import Data.String (Pattern(..), split, stripPrefix, take, trim)
+import Foreign (unsafeToForeign)
+import Simple.JSON (class WriteForeign)
+
+data CheckBoxState
+  = None
+  | Todo
+  | Doing
+  | Done
+
+derive instance genericCheckBoxState :: Generic CheckBoxState _
+
+instance writeCheckBoxStateForeign :: WriteForeign CheckBoxState where
+  writeImpl = unsafeToForeign <<< show
+
+instance checkBoxStateShow :: Show CheckBoxState where
+  show = genericShow
+
+type Info =
+  { info :: String
+  , tabs :: Int
+  , checkbox :: CheckBoxState
+  }
 
 type Topic =
   { title :: String
   , allot :: Int
   , spent :: Int
-  , info :: String
+  , info :: Array Info
+  , checkbox :: CheckBoxState
   }
 
 loadTime :: String -> Maybe Int
@@ -62,14 +87,16 @@ tabs ∷ Int → String
 tabs 0 = ""
 tabs n = "  " <> tabs (n - 1)
 
-fmtInfoArr :: Int -> Array Block -> Array String
-fmtInfoArr n blocks = map (fmtInfo n) blocks
+fmtInfo :: Int -> Block -> Array Info
+fmtInfo n (Block { content, children }) =
+  cons
+    { info: removeLogbook content, tabs: n, checkbox: None }
+    (concatMap (fmtInfo (n + 1)) children)
 
-fmtInfo :: Int -> Block -> String
-fmtInfo n (Block { content, children }) = joinWith "\n" $ [ tabs n <> "- " <> removeLogbook content ] <> (fmtInfoArr (n + 1) children)
+-- [ tabs n <> "- " <> removeLogbook content ] <> (fmtInfoArr (n + 1) children)
 
-loadInfo :: Array Block -> String
-loadInfo bs = joinWith "\n" $ fmtInfoArr 0 bs
+loadInfo :: Array Block -> Array Info
+loadInfo blocks = concatMap (fmtInfo 0) blocks
 
 removeLogbook :: String -> String
 removeLogbook s =
@@ -94,6 +121,7 @@ loadTopic block@(Block { content: title, children }) =
       , allot: fromMaybe 0 allot
       , spent: loadSpent block
       , info: if validTime then loadInfo childChildren else loadInfo children
+      , checkbox: None
       }
       where
       validTime = isJust $ allot
@@ -103,4 +131,5 @@ loadTopic block@(Block { content: title, children }) =
       , allot: 0
       , spent: loadSpent block
       , info: loadInfo children
+      , checkbox: None
       }

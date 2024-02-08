@@ -117,7 +117,16 @@ fn send_tasks(ui: &AppWindow, tasks: Vec<Task>) {
                 abbr: task.title.clone().into(),
                 color: color_gen.next_colour(),
                 title: (&task.title).into(),
-                info: (&task.info).into(),
+                info: ModelRc::new(VecModel::from(
+                    task.info
+                        .iter()
+                        .map(|info| InfoStruct {
+                            info: (&info.info).into(),
+                            checkbox: info.checkbox,
+                            tabs: "  ".repeat(info.tabs).into(),
+                        })
+                        .collect_vec(),
+                )),
                 allot: task.allot as i32,
                 spent: task.spent as f32,
                 blocks: blocks.next().unwrap(),
