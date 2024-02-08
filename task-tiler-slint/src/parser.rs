@@ -50,6 +50,7 @@ fn load_time(trim: &str) -> u64 {
 }
 
 /// Loads tasks
+#[allow(dead_code)]
 pub fn load_tasks(tasks: &str) -> Vec<Task> {
     tasks[2..]
         .split("\n- ")

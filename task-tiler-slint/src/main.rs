@@ -8,14 +8,13 @@ use wasmtimer::std::SystemTime;
 mod parser;
 
 use iter_tools::Itertools;
-use parser::{load_tasks, Task};
+use parser::Task;
 use rand::{seq::SliceRandom, thread_rng};
 use slint::{Color, ModelRc, Timer, TimerMode, VecModel};
 slint::include_modules!();
 
 use async_trait::async_trait;
 use ezsockets::ClientConfig;
-use std::io::BufRead;
 
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
@@ -201,7 +200,7 @@ impl Ui {
 
 #[cfg(not(target_family = "wasm"))]
 #[tokio::main]
-async fn main() -> Result<(), slint::PlatformError> {
+pub async fn main() -> Result<(), slint::PlatformError> {
     // let tasks_str: String = File::open("./test.md")
     // .map(|mut f| {
     //     let mut s = String::new();
