@@ -5,7 +5,7 @@ import Prelude
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Data.String (joinWith)
+import Data.String (Pattern(..), joinWith, split, trim)
 import Data.Traversable (sequence)
 import Effect.Aff (Aff)
 import Logseq.Editor (BlockEntity(..), BlockUUID, getBlock)
@@ -23,7 +23,12 @@ fmtBlockArr :: Int -> Array Block -> Array String
 fmtBlockArr n blocks = map (fmtBlock n) blocks
 
 fmtBlock :: Int -> Block -> String
-fmtBlock n (Block { content, children }) = joinWith "\n" $ [ tabs n <> "- " <> content ] <> (fmtBlockArr (n + 1) children)
+fmtBlock n (Block { content, children }) = joinWith "\n" $ [ tabs n <> "- " <> scrubbed ] <> (fmtBlockArr (n + 1) children)
+  where
+  scrubbed =
+    case split (Pattern ":LOGBOOK:") content of
+      [ logRemoved, _ ] -> trim logRemoved
+      _ -> content
 
 loadBlocks :: Array (Either BlockEntity BlockUUID) -> Aff (Array Block)
 loadBlocks [] = pure $ [ Block { content: "", children: [] } ]
