@@ -3,7 +3,7 @@ module Main where
 import Prelude
 
 import Block (loadBlocks)
-import Data.Array (any, mapMaybe)
+import Data.Array (any)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), maybe)
 import Data.String (Pattern(..), contains)
@@ -43,18 +43,13 @@ sendTasks avarWs = do
           pure unit
         BlockEntity { children: (Just childs) } -> do
           mBlocks <- loadBlocks childs
-          case mapMaybe loadTopic mBlocks of
-            [] -> do
-              _ <- showMsg "Task Tiler: Invalid task layout"
-              pure unit
-            blocks -> do
-              let json = writeJSON blocks
-              logShow $ json
-              liftEffect do
-                maybeWs <- AV.tryRead avarWs
-                case maybeWs of
-                  Just ws -> sendString ws json
-                  Nothing -> logShow $ "Failed to send last message, couldn't get websocket connction"
+          let json = (writeJSON <<< map loadTopic) mBlocks
+          logShow $ json
+          liftEffect do
+            maybeWs <- AV.tryRead avarWs
+            case maybeWs of
+              Just ws -> sendString ws json
+              Nothing -> logShow $ "Failed to send last message, couldn't get websocket connction"
 
 replaceSocket :: AV.AVar WebSocket -> Effect Unit
 replaceSocket avarWs = do

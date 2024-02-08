@@ -4,9 +4,10 @@ import Prelude
 
 import Effect (Effect)
 import Effect.Class.Console (log)
-import Test.Topic (timeTests)
+import Test.Topic (loadTopicTests, timeTests)
 
 main :: Effect Unit
 main = do
   log "🍝"
-  timeTests
+  _ <- timeTests
+  loadTopicTests
