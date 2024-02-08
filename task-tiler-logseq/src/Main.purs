@@ -42,14 +42,13 @@ sendTasks avarWs = do
           _ <- showMsg "Task Tiler: Invalid task tiler block, no children"
           pure unit
         BlockEntity { children: (Just childs) } -> do
-          mBlocks <- loadBlocks childs
-          let json = (writeJSON <<< map loadTopic) mBlocks
+          json <- writeJSON <<< map loadTopic <$> loadBlocks childs
           logShow $ json
           liftEffect do
             maybeWs <- AV.tryRead avarWs
             case maybeWs of
               Just ws -> sendString ws json
-              Nothing -> logShow $ "Failed to send last message, couldn't get websocket connction"
+              Nothing -> logShow "Failed to send last message, couldn't get websocket connction"
 
 replaceSocket :: AV.AVar WebSocket -> Effect Unit
 replaceSocket avarWs = do
