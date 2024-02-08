@@ -6,7 +6,7 @@ import Block (Block(..), fmtBlockArr)
 import Data.Array (mapMaybe)
 import Data.Foldable (sum)
 import Data.Int (fromString)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.String (Pattern(..), joinWith, split, stripPrefix, take, trim)
 
 type Topic =
@@ -62,7 +62,7 @@ loadInfo :: Array Block -> String
 loadInfo bs = joinWith "\n" $ fmtBlockArr 0 bs
 
 removeLogbook :: String -> String
-removeLogbook s = 
+removeLogbook s =
   case split (Pattern ":LOGBOOK:") s of
     [ logRemoved, _ ] -> trim logRemoved
     _ -> s
@@ -70,43 +70,27 @@ removeLogbook s =
 loadTitle :: String -> String
 loadTitle = removeLogbook <<< removeTodo
   where
-    removeTodo s = 
-      case mapMaybe (\x -> stripPrefix (Pattern (x <> " ")) s) ["TODO", "LATER", "DOING", "NOW", "DONE"] of
-        [stripped] -> stripped
-        _ -> s
+  removeTodo s =
+    case mapMaybe (\x -> stripPrefix (Pattern (x <> " ")) s) [ "TODO", "LATER", "DOING", "NOW", "DONE" ] of
+      [ stripped ] -> stripped
+      _ -> s
 
 loadTopic :: Block -> Topic
-loadTopic -- a topic with just one child, potentially time or info
-  block@
-    ( Block
-        { content
-        , children: infoBlock@[ Block { content: timeText, children } ]
-        }
-    ) =
-  case loadTime timeText of
-    Just allot ->
-      { title: loadTitle content
-      , allot
+loadTopic block@(Block { content: title, children }) =
+  case children of
+    -- just one direct child, potentially time or info
+    [ Block { content: childContent, children: childChildren } ] ->
+      { title: loadTitle title
+      , allot: fromMaybe 0 allot
+      , spent: loadSpent block
+      , info: if validTime then loadInfo childChildren else loadInfo children
+      }
+      where
+      validTime = isJust $ allot
+      allot = loadTime childContent
+    _ ->
+      { title: loadTitle title
+      , allot: 0
       , spent: loadSpent block
       , info: loadInfo children
       }
-    Nothing ->
-      { title: loadTitle content
-      , allot: 0
-      , spent: loadSpent block
-      , info: loadInfo infoBlock
-      }
-loadTopic -- just a topic, no time allotted or info given
-  block@(Block { content, children: [] }) =
-  { title: loadTitle content
-  , allot: 0
-  , spent: loadSpent block
-  , info: ""
-  }
-loadTopic -- a topic with only info, no time allotted
-  block@(Block { content, children }) =
-  { title: loadTitle content
-  , allot: 0
-  , spent: loadSpent block
-  , info: loadInfo children
-  }
