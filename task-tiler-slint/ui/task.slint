@@ -63,7 +63,7 @@ export struct TaskStruct {
 }
 
 component CheckBox inherits Rectangle {
-    in-out property <bool> checked;
+    in-out property <CheckBoxState> state;
     in property <brush> check-color;
     in property <brush> box-color;
 
@@ -76,8 +76,8 @@ component CheckBox inherits Rectangle {
                 padding: 2px;
                 Image {
                     colorize: check-color;
-                    source: @image-url("images/check.svg");
-                    opacity: root.checked ? 1.0 : 0;
+                    source: state == CheckBoxState.doing ? @image-url("images/hourglass.svg") : @image-url("images/check.svg");
+                    opacity: root.state == CheckBoxState.todo ? 0 : 1.0;
                 }    
             }
         }
@@ -125,15 +125,14 @@ export component Task inherits Rectangle {
                             VerticalLayout {
                                 alignment: start;
                                 padding-right: 4px;
-                                if info.checkbox == CheckBoxState.todo || info.checkbox == CheckBoxState.done :
+                                if info.checkbox != CheckBoxState.none :
                                     CheckBox {
                                         height: 12px;
                                         width: 12px;
-                                        checked: info.checkbox == CheckBoxState.done;
-                                        check-color: infoview.background.darker(0.9);
+                                        state: info.checkbox;
+                                        check-color: black;
                                         box-color: infoview.background.darker(0.6);
                                     }
-                                // TODO handle doing state
                             }
                             Text {
                                 text: info.info;
