@@ -62,6 +62,28 @@ export struct TaskStruct {
     started: bool
 }
 
+component CheckBox inherits Rectangle {
+    in-out property <bool> checked;
+    in property <brush> check-color;
+    in property <brush> box-color;
+
+    HorizontalLayout {
+        Rectangle {
+            border-color: box-color;
+            border-radius: 2px;
+            border-width: 1px;
+            HorizontalLayout {
+                padding: 2px;
+                Image {
+                    colorize: check-color;
+                    source: @image-url("images/check.svg");
+                    opacity: root.checked ? 1.0 : 0;
+                }    
+            }
+        }
+    }
+}
+
 export component Task inherits Rectangle {
     in-out property <TaskStruct> task;
     callback clicked <=> touch.clicked;
@@ -74,34 +96,51 @@ export component Task inherits Rectangle {
     min-width: 120px;
         
     touch := TouchArea{ }
-    
-    info_background := Rectangle {
-        border-radius: 4px;
-        x: infoview.x - 2px;
-        y: infoview.y - 2px;
-        width: infoview.width + 4px;
-        height: infoview.height + 4px;
-        background: task.color.darker(0.1);
-    }
-    
+        
     VerticalLayout {
         spacing: 8px;
         padding: 8px;
         alignment: stretch;
-        title := 
-            Text {
-                min-width: 64px;
-                text: task.title;
-                font-size: 24px;
-                color: #000;
-            }
-        infoview := ListView {
-            min-height: 16px;
-            padding-bottom: 8px;
-            
-            for info in task.info : Text {
-                text: info.tabs + info.info;
-                wrap: word-wrap;
+        Text {
+            min-width: 64px;
+            text: task.title;
+            font-size: 24px;
+            color: #000;
+        }
+        infoview := Rectangle {
+            border-radius: 4px;
+            background: task.color.darker(0.1);
+            HorizontalLayout {
+                padding-top: 4px;
+                padding-left: 4px;
+                padding-right: 2px;
+                ListView {
+                    min-height: 16px;
+                    for info in task.info : 
+                        HorizontalLayout {
+                            alignment: start;
+                            Text {
+                                text: info.tabs;
+                            }
+                            VerticalLayout {
+                                alignment: start;
+                                padding-right: 4px;
+                                if info.checkbox == CheckBoxState.todo || info.checkbox == CheckBoxState.done :
+                                    CheckBox {
+                                        height: 12px;
+                                        width: 12px;
+                                        checked: info.checkbox == CheckBoxState.done;
+                                        check-color: infoview.background.darker(0.9);
+                                        box-color: infoview.background.darker(0.6);
+                                    }
+                                // TODO handle doing state
+                            }
+                            Text {
+                                text: info.info;
+                                wrap: word-wrap;
+                            }
+                        }
+                }
             }
         }
         TimeFormat {
