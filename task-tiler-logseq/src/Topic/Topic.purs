@@ -5,32 +5,15 @@ import Prelude
 import Block (Block(..))
 import Data.Array (concatMap, cons, mapMaybe)
 import Data.Foldable (sum)
-import Data.Generic.Rep (class Generic)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.Show.Generic (genericShow)
 import Data.String (Pattern(..), split, stripPrefix, take, trim)
-import Foreign (unsafeToForeign)
-import Simple.JSON (class WriteForeign)
-
-data CheckBoxState
-  = None
-  | Todo
-  | Doing
-  | Done
-
-derive instance genericCheckBoxState :: Generic CheckBoxState _
-
-instance writeCheckBoxStateForeign :: WriteForeign CheckBoxState where
-  writeImpl = unsafeToForeign <<< show
-
-instance checkBoxStateShow :: Show CheckBoxState where
-  show = genericShow
+import Topic.Checkbox (CheckboxState(..), checkboxState)
 
 type Info =
   { info :: String
   , tabs :: Int
-  , checkbox :: CheckBoxState
+  , checkbox :: CheckboxState
   }
 
 type Topic =
@@ -38,7 +21,7 @@ type Topic =
   , allot :: Int
   , spent :: Int
   , info :: Array Info
-  , checkbox :: CheckBoxState
+  , checkbox :: CheckboxState
   }
 
 loadTime :: String -> Maybe Int
@@ -90,10 +73,16 @@ tabs n = "  " <> tabs (n - 1)
 fmtInfo :: Int -> Block -> Array Info
 fmtInfo n (Block { content, children }) =
   cons
-    { info: removeLogbook content, tabs: n, checkbox: None }
+    { info: strip content, tabs: n, checkbox: checkboxState content }
     (concatMap (fmtInfo (n + 1)) children)
+  where
+  strip = removeTodo <<< removeLogbook
 
--- [ tabs n <> "- " <> removeLogbook content ] <> (fmtInfoArr (n + 1) children)
+removeTodo ∷ String → String
+removeTodo s =
+  case mapMaybe (\x -> stripPrefix (Pattern (x <> " ")) s) [ "TODO", "LATER", "DOING", "NOW", "DONE" ] of
+    [ stripped ] -> stripped
+    _ -> s
 
 loadInfo :: Array Block -> Array Info
 loadInfo blocks = concatMap (fmtInfo 0) blocks
@@ -106,11 +95,6 @@ removeLogbook s =
 
 loadTitle :: String -> String
 loadTitle = removeLogbook <<< removeTodo
-  where
-  removeTodo s =
-    case mapMaybe (\x -> stripPrefix (Pattern (x <> " ")) s) [ "TODO", "LATER", "DOING", "NOW", "DONE" ] of
-      [ stripped ] -> stripped
-      _ -> s
 
 loadTopic :: Block -> Topic
 loadTopic block@(Block { content: title, children }) =
