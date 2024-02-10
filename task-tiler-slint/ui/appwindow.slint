@@ -8,7 +8,7 @@ export component AppWindow inherits Window {
     out property<bool> task_started: false;
     in-out property <[int]> active_task;
     in-out property <[int]> selected_task;
-    in-out property <[[TaskStruct]]> tasks: [];
+    in-out property <[[TaskStruct]]> tasks;
     out property <float> current_spent;
     callback start_timer();
     callback stop_timer();
@@ -24,8 +24,8 @@ export component AppWindow inherits Window {
     }
 
     function start_task(idx: [int]) {
-        if (root.task-started) {
-            if (root.active-task != idx) {
+        if root.task-started {
+            if root.active-task != idx {
                 toggle-started();
             }
             stop-timer();
@@ -34,7 +34,7 @@ export component AppWindow inherits Window {
         toggle-started();
         root.task-started = tasks[active-task[0]][active-task[1]].started;
         root.current-spent = tasks[active-task[0]][active-task[1]].spent;
-        if (root.task-started) {
+        if root.task-started {
             start-timer();
         }
     }
@@ -47,14 +47,14 @@ export component AppWindow inherits Window {
         padding: 8px;
         spacing: 8px;
         if show_info: Task {
-                task: tasks[selected-task[0]][selected-task[1]];
-                clicked => {
-                    root.show_info = !root.show_info;
-                }
-                button-clicked => {
-                    start_task(self.task.idx);
-                }
+            task: tasks[selected-task[0]][selected-task[1]];
+            clicked => {
+                root.show_info = !root.show_info;
             }
+            button-clicked => {
+                start_task(self.task.idx);
+            }
+        }
         if !show_info:
             HorizontalLayout {
                 spacing: 8px;
@@ -81,7 +81,8 @@ export component AppWindow inherits Window {
                             root.show-info = !root.show-info;
                         }
                         button-clicked => {
-                            start_task(self.task.idx);                    }
+                            start_task(self.task.idx);               
+                        }
                     }
             }
     }

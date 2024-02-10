@@ -10,18 +10,18 @@ component TaskButton inherits Rectangle {
     in property <int> spent;
     in property <int> allot;
     in property <TaskState> state;
-    callback clicked <=> touch.clicked;
-
+    callback clicked<=>touch.clicked;
     HorizontalLayout {
         spacing: 16px;
         Rectangle {
             width: 56px;
             height: 40px;
-            background: touch.pressed ? #353535 : touch.has-hover ? #757575 :  #959595;
+            background: touch.pressed ? #353535 : touch.has-hover ? #757575 : #959595;
             Text {
                 font-size: 16px;
                 text: state == TaskState.started ? "Stop" : "Start";
             }
+
             touch := TouchArea { }
         }
 
@@ -47,8 +47,7 @@ enum CheckBoxState {
 export struct InfoStruct {
     info: string,
     tabs: string,
-    checkbox: CheckBoxState
-}
+    checkbox: CheckBoxState}
 
 export struct TaskStruct {
     title: string,
@@ -59,14 +58,12 @@ export struct TaskStruct {
     spent: float,
     allot: int,
     idx: [int],
-    started: bool
-}
+    started: bool}
 
 component CheckBox inherits Rectangle {
     in-out property <CheckBoxState> state;
     in property <brush> check-color;
     in property <brush> box-color;
-
     HorizontalLayout {
         Rectangle {
             border-color: box-color;
@@ -78,7 +75,7 @@ component CheckBox inherits Rectangle {
                     colorize: check-color;
                     source: state == CheckBoxState.doing ? @image-url("images/hourglass.svg") : @image-url("images/check.svg");
                     opacity: root.state == CheckBoxState.todo ? 0 : 1.0;
-                }    
+                }
             }
         }
     }
@@ -87,17 +84,16 @@ component CheckBox inherits Rectangle {
 export component Task inherits Rectangle {
     in-out property <TaskStruct> task;
     property <bool> scroll_title: false;
-    callback clicked <=> touch.clicked;
-    callback button_clicked <=> button.clicked;
+    callback clicked<=>touch.clicked;
+    callback button_clicked<=>button.clicked;
     border-radius: 4px;
     border-width: 0px;
     background: task.color;
     preferred-height: 160px;
     preferred-width: 60px * task.blocks;
     min-width: 60px;
-        
-    touch := TouchArea{ }
-        
+    touch := TouchArea { }
+
     VerticalLayout {
         spacing: 8px;
         padding: 8px;
@@ -112,6 +108,7 @@ export component Task inherits Rectangle {
                 color: #000;
             }
         }
+
         infoview := Rectangle {
             border-radius: 4px;
             background: task.color.darker(0.1);
@@ -121,32 +118,34 @@ export component Task inherits Rectangle {
                 padding-right: 2px;
                 ListView {
                     min-height: 16px;
-                    for info in task.info : 
-                        HorizontalLayout {
+                    for info in task.info: HorizontalLayout {
+                        alignment: start;
+                        Text {
+                            text: info.tabs;
+                        }
+
+                        VerticalLayout {
                             alignment: start;
-                            Text {
-                                text: info.tabs;
-                            }
-                            VerticalLayout {
-                                alignment: start;
-                                padding-right: 4px;
-                                if info.checkbox != CheckBoxState.none :
+                            padding-right: 4px;
+                            if info.checkbox != CheckBoxState.none:
                                     CheckBox {
-                                        height: 12px;
-                                        width: 12px;
-                                        state: info.checkbox;
-                                        check-color: black;
-                                        box-color: infoview.background.darker(0.6);
-                                    }
-                            }
-                            Text {
-                                text: info.info;
-                                wrap: word-wrap;
+                                height: 12px;
+                                width: 12px;
+                                state: info.checkbox;
+                                check-color: black;
+                                box-color: infoview.background.darker(0.6);
                             }
                         }
+
+                        Text {
+                            text: info.info;
+                            wrap: word-wrap;
+                        }
+                    }
                 }
             }
         }
+
         TimeFormat {
             height: self.width < 165px ? self.preferred-height : 0px;
             overflow: elide;
@@ -154,6 +153,7 @@ export component Task inherits Rectangle {
             allot: task.allot;
             font-size: 10px;
         }
+
         button := TaskButton {
             state: task.started ? TaskState.started : TaskState.stopped;
             spent: task.spent;

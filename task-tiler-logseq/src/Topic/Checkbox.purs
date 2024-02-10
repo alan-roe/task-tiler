@@ -29,10 +29,11 @@ todoStates = [ "TODO", "LATER", "DOING", "NOW", "DONE" ]
 
 checkboxState :: String -> CheckboxState
 checkboxState s =
-  maybe None strToState <<< 
-  head <<<
-  take 1 <<< 
-  split (Pattern " ") 
+  maybe None strToState
+    <<< head
+    <<< take 1
+    <<<
+      split (Pattern " ")
     $ s
   where
   strToState "TODO" = Todo
