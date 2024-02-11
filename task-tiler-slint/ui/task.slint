@@ -83,6 +83,7 @@ component CheckBox inherits Rectangle {
 
 export component Task inherits Rectangle {
     in-out property <TaskStruct> task;
+    property <duration> start-anim;
     property <bool> scroll_title: false;
     callback clicked<=>touch.clicked;
     callback button_clicked<=>button.clicked;
@@ -99,13 +100,23 @@ export component Task inherits Rectangle {
         padding: 8px;
         alignment: stretch;
         title := Flickable {
-            height: txt.height;
-            viewport-width: txt.width;
-            txt := Text {
+            height: title_txt.height;
+            viewport-width: title-txt.width;
+            viewport-x: title-touch.pressed && title-txt.width >= title.width 
+                ? clamp(((animation-tick() - start-anim) / -1ms) / (title.width / 2 / 1px), (title.width - title-txt.width) / 1px, 0) * 1px
+                : 0px ;
+            title-txt := Text {
                 min-width: 64px;
                 text: task.title;
                 font-size: 24px;
                 color: #000;
+            }
+            title-touch := TouchArea {
+                pointer-event(pe) => {
+                    if pe.kind == PointerEventKind.down {
+                        start-anim = animation-tick();
+                    }
+                }
             }
         }
 
