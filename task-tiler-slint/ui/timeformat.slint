@@ -5,15 +5,15 @@ export component TimeFormat inherits Text {
     function prepend_0(seconds: int) -> string{
         if (seconds < 10) {
             return "0" + seconds;
-        
         }
         return seconds;
-    
     }
 
     function time_format(seconds: int) -> string{
         @tr("{}:{}:{}", floor(seconds / 60 / 60), prepend_0(mod(floor(seconds / 60), 60)), prepend_0(mod(seconds, 60)))
     }
 
-    text: "Spent: " + time_format(spent) + "\nAllot: " + time_format(allot);
+    text: allot != 0 
+        ? "Spent: " + time_format(spent) + "\nAllot: " + time_format(allot)
+        : "Spent: " + time_format(spent);
 }
