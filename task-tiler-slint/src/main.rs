@@ -8,7 +8,7 @@ use wasmtimer::std::SystemTime;
 mod parser;
 
 use iter_tools::Itertools;
-use parser::Task;
+use parser::{to_json, Task};
 use rand::{seq::SliceRandom, thread_rng};
 use slint::{Color, ModelRc, Timer, TimerMode, VecModel};
 slint::include_modules!();
@@ -21,11 +21,12 @@ use std::sync::mpsc::{Receiver, Sender};
 
 struct Client {
     task_sender: Sender<String>,
+    handle: ezsockets::Client<Self>,
 }
 
 #[async_trait]
 impl ezsockets::ClientExt for Client {
-    type Call = ();
+    type Call = String;
 
     async fn on_text(&mut self, text: String) -> Result<(), ezsockets::Error> {
         println!("received message: {text}");
@@ -39,7 +40,7 @@ impl ezsockets::ClientExt for Client {
     }
 
     async fn on_call(&mut self, call: Self::Call) -> Result<(), ezsockets::Error> {
-        let () = call;
+        self.handle.text(call).unwrap();
         Ok(())
     }
 }
@@ -148,16 +149,21 @@ struct Ui {
     ui: AppWindow,
     timer: Rc<Timer>,
     receive_timer: Rc<Timer>,
+    handle: ezsockets::Client<Client>,
 }
 
 impl Ui {
-    fn load_ui(task_receiver: Receiver<String>) -> Result<Self, slint::PlatformError> {
+    fn load_ui(
+        task_receiver: Receiver<String>,
+        handle: ezsockets::Client<Client>,
+    ) -> Result<Self, slint::PlatformError> {
         let ui = AppWindow::new()?;
         let ui_handle = ui.as_weak();
         let app = Self {
             ui,
             timer: Rc::new(Timer::default()),
             receive_timer: Rc::new(Timer::default()),
+            handle,
         };
 
         app.receive_timer.start(
@@ -198,9 +204,17 @@ impl Ui {
                 },
             );
         });
-
+        let stop_handle = self.handle.clone();
         self.ui.on_stop_timer(move || {
             stop_timer.stop();
+            let t = Task {
+                title: "sending from the thingy".to_string(),
+                allot: 0,
+                spent: 0,
+                info: vec![],
+                checkbox: CheckBoxState::None,
+            };
+            // stop_handle.text(to_json(&t)).unwrap();
         });
 
         self.ui.run()
@@ -223,9 +237,16 @@ pub async fn main() -> Result<(), slint::PlatformError> {
 
     let config = ClientConfig::new("ws://localhost:8080/websocket");
     let (task_sender, task_receiver) = mpsc::channel();
-    let (_handle, _future) = ezsockets::connect(|_client| Client { task_sender }, config).await;
+    let (handle, _future) = ezsockets::connect(
+        |handle| Client {
+            task_sender,
+            handle,
+        },
+        config,
+    )
+    .await;
 
-    let ui: Ui = Ui::load_ui(task_receiver)?;
+    let ui: Ui = Ui::load_ui(task_receiver, handle)?;
 
     ui.run()
 }

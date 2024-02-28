@@ -21,3 +21,7 @@ pub fn from_json(json: &str) -> serde_json::Result<Vec<Task>> {
     let tasks: Vec<Task> = dbg!(serde_json::from_str(json)?);
     Ok(tasks)
 }
+
+pub fn to_json(task: &Task) -> String {
+    dbg!(serde_json::to_string(task).unwrap())
+}
