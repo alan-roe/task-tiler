@@ -13,6 +13,7 @@ workspace:
         - prelude
         - quickcheck
         - simple-json
+        - supabase
         - web-socket
       test_dependencies: []
       build_plan:
@@ -20,8 +21,10 @@ workspace:
         - aff-promise
         - arraybuffer-types
         - arrays
+        - assert
         - avar
         - bifunctors
+        - catenable-lists
         - console
         - const
         - contravariant
@@ -33,23 +36,35 @@ workspace:
         - enums
         - exceptions
         - exists
+        - fetch
         - foldable-traversable
         - foreign
         - foreign-object
+        - free
         - functions
         - functors
         - gen
+        - heterogeneous
+        - http-methods
         - identity
+        - indexed-monad
         - integers
         - invariant
+        - js-bigints
+        - js-date
+        - js-fetch
+        - js-promise
+        - js-promise-aff
         - js-timers
         - lazy
         - lcg
         - lists
+        - literals
         - maybe
         - media-types
         - newtype
         - nonempty
+        - now
         - nullable
         - numbers
         - ordered-collections
@@ -58,14 +73,19 @@ workspace:
         - partial
         - prelude
         - profunctor
+        - psci-support
         - quickcheck
         - random
+        - react-basic
+        - react-basic-hooks
         - record
+        - record-studio
         - refs
         - safe-coerce
         - simple-json
         - st
         - strings
+        - supabase
         - tailrec
         - transformers
         - tuples
@@ -73,14 +93,21 @@ workspace:
         - typelevel-prelude
         - unfoldable
         - unsafe-coerce
+        - unsafe-reference
+        - untagged-union
         - variant
         - web-dom
         - web-events
         - web-file
+        - web-html
         - web-socket
+        - web-storage
+        - web-streams
+        - yoga-json
+        - yoga-tree
   package_set:
     address:
-      registry: 48.4.0
+      registry: 50.1.2
     compiler: ">=0.15.14 <0.16.0"
     content:
       abc-parser: 2.0.1
@@ -108,7 +135,7 @@ workspace:
       arraybuffer-builder: 3.1.0
       arraybuffer-types: 3.0.2
       arrays: 7.3.0
-      arrays-extra: 0.5.1
+      arrays-extra: 0.6.1
       arrays-zipper: 2.0.1
       ask: 1.0.0
       assert: 6.0.0
@@ -134,6 +161,7 @@ workspace:
       chameleon-transformers: 1.0.0
       channel: 1.0.0
       checked-exceptions: 3.1.1
+      choku: 1.0.1
       classless: 0.1.1
       classless-arbitrary: 0.1.1
       classless-decode-json: 0.1.1
@@ -180,7 +208,7 @@ workspace:
       elmish-html: 0.8.2
       elmish-testing-library: 0.3.2
       email-validate: 7.0.0
-      encoding: 0.0.8
+      encoding: 0.0.9
       enums: 6.0.1
       env-names: 0.3.4
       error: 2.0.0
@@ -205,6 +233,7 @@ workspace:
       float32: 2.0.0
       fmt: 0.2.1
       foldable-traversable: 6.0.0
+      foldable-traversable-extra: 0.0.6
       foreign: 7.0.0
       foreign-object: 4.1.0
       foreign-readwrite: 3.4.0
@@ -234,6 +263,7 @@ workspace:
       group: 4.1.1
       halogen: 7.0.0
       halogen-bootstrap5: 5.3.2
+      halogen-canvas: 1.0.0
       halogen-css: 10.0.0
       halogen-echarts-simple: 0.0.4
       halogen-formless: 4.0.3
@@ -248,6 +278,7 @@ workspace:
       halogen-typewriter: 1.0.4
       halogen-vdom: 8.0.0
       halogen-vdom-string-renderer: 0.5.0
+      halogen-xterm: 2.0.0
       heckin: 2.0.1
       heterogeneous: 0.6.0
       homogeneous: 0.4.0
@@ -290,6 +321,7 @@ workspace:
       lazy-joe: 1.0.0
       lcg: 4.0.0
       leibniz: 5.0.0
+      leveldb: 1.0.1
       liminal: 1.0.1
       linalg: 6.0.0
       lists: 7.0.0
@@ -393,6 +425,7 @@ workspace:
       protobuf: 4.3.0
       psa-utils: 8.0.0
       psci-support: 6.0.0
+      punycode: 1.0.0
       qualified-do: 2.2.0
       quantities: 12.2.0
       quickcheck: 8.0.1
@@ -432,6 +465,7 @@ workspace:
       return: 0.2.0
       ring-modules: 5.0.1
       rito: 0.3.4
+      rough-notation: 1.0.2
       routing: 11.0.0
       routing-duplex: 0.7.0
       run: 5.0.0
@@ -453,7 +487,7 @@ workspace:
       soundfonts: 4.1.0
       sparse-matrices: 1.3.0
       sparse-polynomials: 2.0.5
-      spec: 7.5.5
+      spec: 7.6.0
       spec-mocha: 5.1.0
       spec-quickcheck: 5.0.0
       splitmix: 2.1.0
@@ -543,6 +577,7 @@ workspace:
       webextension-polyfill: 0.1.0
       webgpu: 0.0.1
       which: 2.0.0
+      xterm: 1.0.0
       yoga-fetch: 1.0.1
       yoga-json: 5.1.0
       yoga-om: 0.1.0
@@ -550,7 +585,10 @@ workspace:
       yoga-tree: 1.0.0
       z3: 0.0.2
       zipperarray: 2.0.0
-  extra_packages: {}
+  extra_packages:
+    supabase:
+      git: https://github.com/alan-roe/purescript-supabase.git
+      ref: 26bbe69927218d577508eaea000aab15928951c7
 packages:
   aff:
     type: registry
@@ -605,6 +643,14 @@ packages:
       - tuples
       - unfoldable
       - unsafe-coerce
+  assert:
+    type: registry
+    version: 6.0.0
+    integrity: sha256-hCSYcCw9kj3qujoDcriWhCdmrpPZoguSPDZhEMnTl3A=
+    dependencies:
+      - console
+      - effect
+      - prelude
   avar:
     type: registry
     version: 5.0.0
@@ -626,6 +672,18 @@ packages:
       - newtype
       - prelude
       - tuples
+  catenable-lists:
+    type: registry
+    version: 7.0.0
+    integrity: sha256-76vYENhwF4BWTBsjeLuErCH2jqVT4M3R1HX+4RwSftA=
+    dependencies:
+      - control
+      - foldable-traversable
+      - lists
+      - maybe
+      - prelude
+      - tuples
+      - unfoldable
   console:
     type: registry
     version: 6.1.0
@@ -734,6 +792,30 @@ packages:
     integrity: sha256-A0JQHpTfo1dNOj9U5/Fd3xndlRSE0g2IQWOGor2yXn8=
     dependencies:
       - unsafe-coerce
+  fetch:
+    type: registry
+    version: 4.1.0
+    integrity: sha256-zCwBUkRL9n6nUhK1+7UqqsuxswPFATsZfGSBOA3NYYY=
+    dependencies:
+      - aff
+      - arraybuffer-types
+      - bifunctors
+      - effect
+      - either
+      - foreign
+      - http-methods
+      - js-fetch
+      - js-promise
+      - js-promise-aff
+      - maybe
+      - newtype
+      - ordered-collections
+      - prelude
+      - record
+      - strings
+      - typelevel-prelude
+      - web-file
+      - web-streams
   foldable-traversable:
     type: registry
     version: 6.0.0
@@ -781,6 +863,25 @@ packages:
       - tuples
       - typelevel-prelude
       - unfoldable
+  free:
+    type: registry
+    version: 7.1.0
+    integrity: sha256-JAumgEsGSzJCNLD8AaFvuX7CpqS5yruCngi6yI7+V5k=
+    dependencies:
+      - catenable-lists
+      - control
+      - distributive
+      - either
+      - exists
+      - foldable-traversable
+      - invariant
+      - lazy
+      - maybe
+      - prelude
+      - tailrec
+      - transformers
+      - tuples
+      - unsafe-coerce
   functions:
     type: registry
     version: 6.0.0
@@ -820,6 +921,25 @@ packages:
       - tailrec
       - tuples
       - unfoldable
+  heterogeneous:
+    type: registry
+    version: 0.6.0
+    integrity: sha256-cfNYSK6yYmjTrkzk95Otpv6TUUkeBreexwqG/tBvUyg=
+    dependencies:
+      - either
+      - functors
+      - prelude
+      - record
+      - tuples
+      - variant
+  http-methods:
+    type: registry
+    version: 6.0.0
+    integrity: sha256-Orr7rbDGcp7qoqmUMXPRMjBx+C4jqOQcFe9+gE3nMgU=
+    dependencies:
+      - either
+      - prelude
+      - strings
   identity:
     type: registry
     version: 6.0.0
@@ -829,6 +949,13 @@ packages:
       - invariant
       - newtype
       - prelude
+  indexed-monad:
+    type: registry
+    version: 3.0.0
+    integrity: sha256-N8yYLH7iRVnsprSAusJ369pUprXJo9gN9xM5XXSB+bM=
+    dependencies:
+      - control
+      - newtype
   integers:
     type: registry
     version: 6.0.0
@@ -844,6 +971,67 @@ packages:
     dependencies:
       - control
       - prelude
+  js-bigints:
+    type: registry
+    version: 2.2.1
+    integrity: sha256-hKWZo9NxtsAaHmNXr6B8GY4c0olQbYLXPVGWm4TF2Ss=
+    dependencies:
+      - integers
+      - maybe
+      - prelude
+  js-date:
+    type: registry
+    version: 8.0.0
+    integrity: sha256-6TVF4DWg5JL+jRAsoMssYw8rgOVALMUHT1CuNZt8NRo=
+    dependencies:
+      - datetime
+      - effect
+      - exceptions
+      - foreign
+      - integers
+      - now
+  js-fetch:
+    type: registry
+    version: 0.2.1
+    integrity: sha256-zQaVi9wFWku1SsWmdR11kRpOb+wxkNWR49cn928ucjw=
+    dependencies:
+      - arraybuffer-types
+      - arrays
+      - effect
+      - foldable-traversable
+      - foreign
+      - foreign-object
+      - functions
+      - http-methods
+      - js-promise
+      - maybe
+      - newtype
+      - prelude
+      - record
+      - tuples
+      - typelevel-prelude
+      - unfoldable
+      - web-file
+      - web-streams
+  js-promise:
+    type: registry
+    version: 1.0.0
+    integrity: sha256-kXNo5g9RJgPdrTuKRe5oG2kBIwPp+j5VDPDplqZBJzQ=
+    dependencies:
+      - effect
+      - exceptions
+      - foldable-traversable
+      - functions
+      - maybe
+      - prelude
+  js-promise-aff:
+    type: registry
+    version: 1.0.0
+    integrity: sha256-s9kml9Ei74hKlMMg41yyZp4GkbmYUwaH+gBWWrdhwec=
+    dependencies:
+      - aff
+      - foreign
+      - js-promise
   js-timers:
     type: registry
     version: 6.1.0
@@ -887,6 +1075,18 @@ packages:
       - tailrec
       - tuples
       - unfoldable
+  literals:
+    type: registry
+    version: 1.0.2
+    integrity: sha256-RaeNZPykLhdJXYcx463xiwyC3XghrSQAqqeU28tDNW0=
+    dependencies:
+      - integers
+      - maybe
+      - numbers
+      - partial
+      - prelude
+      - typelevel-prelude
+      - unsafe-coerce
   maybe:
     type: registry
     version: 6.0.0
@@ -921,6 +1121,13 @@ packages:
       - prelude
       - tuples
       - unfoldable
+  now:
+    type: registry
+    version: 6.0.0
+    integrity: sha256-xZ7x37ZMREfs6GCDw/h+FaKHV/3sPWmtqBZRGTxybQY=
+    dependencies:
+      - datetime
+      - effect
   nullable:
     type: registry
     version: 6.0.0
@@ -998,6 +1205,14 @@ packages:
       - newtype
       - prelude
       - tuples
+  psci-support:
+    type: registry
+    version: 6.0.0
+    integrity: sha256-C6ql4P9TEP06hft/1Z5QumPA4yARR4VIxDdhmL1EO+Y=
+    dependencies:
+      - console
+      - effect
+      - prelude
   quickcheck:
     type: registry
     version: 8.0.1
@@ -1037,6 +1252,45 @@ packages:
     dependencies:
       - effect
       - integers
+  react-basic:
+    type: registry
+    version: 17.0.0
+    integrity: sha256-xE5sL14ITpSRCbAnWrp7KAfbzv+Ft0rSaAnjkqKcSVY=
+    dependencies:
+      - effect
+      - prelude
+      - record
+  react-basic-hooks:
+    type: registry
+    version: 8.2.0
+    integrity: sha256-Ptu4w3DFLv7Chff650CCADcm4eeXfO/5jubd7QwJjsQ=
+    dependencies:
+      - aff
+      - aff-promise
+      - bifunctors
+      - console
+      - control
+      - datetime
+      - effect
+      - either
+      - exceptions
+      - foldable-traversable
+      - functions
+      - indexed-monad
+      - integers
+      - maybe
+      - newtype
+      - now
+      - nullable
+      - ordered-collections
+      - prelude
+      - react-basic
+      - refs
+      - tuples
+      - type-equality
+      - unsafe-coerce
+      - unsafe-reference
+      - web-html
   record:
     type: registry
     version: 4.0.0
@@ -1045,6 +1299,16 @@ packages:
       - functions
       - prelude
       - unsafe-coerce
+  record-studio:
+    type: registry
+    version: 1.0.4
+    integrity: sha256-9v6qpUrGa17Im/F/vWODjKlmD3ZuUXYIKCpz5OI9seM=
+    dependencies:
+      - heterogeneous
+      - lists
+      - prelude
+      - record
+      - typelevel-prelude
   refs:
     type: registry
     version: 6.0.0
@@ -1102,6 +1366,38 @@ packages:
       - tuples
       - unfoldable
       - unsafe-coerce
+  supabase:
+    type: git
+    url: https://github.com/alan-roe/purescript-supabase.git
+    rev: 26bbe69927218d577508eaea000aab15928951c7
+    dependencies:
+      - aff
+      - aff-promise
+      - console
+      - datetime
+      - effect
+      - either
+      - exceptions
+      - fetch
+      - foldable-traversable
+      - foreign
+      - functions
+      - js-fetch
+      - lists
+      - maybe
+      - nullable
+      - prelude
+      - react-basic-hooks
+      - record
+      - record-studio
+      - transformers
+      - tuples
+      - typelevel-prelude
+      - unsafe-coerce
+      - unsafe-reference
+      - untagged-union
+      - web-file
+      - yoga-json
   tailrec:
     type: registry
     version: 6.1.0
@@ -1169,6 +1465,28 @@ packages:
     version: 6.0.0
     integrity: sha256-IqIYW4Vkevn8sI+6aUwRGvd87tVL36BBeOr0cGAE7t0=
     dependencies: []
+  unsafe-reference:
+    type: registry
+    version: 5.0.0
+    integrity: sha256-zU7BhfJU14nXQRZG9iADsp0mSiKhz07OcKyjRB2YT+Y=
+    dependencies:
+      - prelude
+  untagged-union:
+    type: registry
+    version: 1.0.0
+    integrity: sha256-XSSsmsOIq+JvPaXUdKCW2nGQZ2D+Ku5J6FbWj812AN0=
+    dependencies:
+      - assert
+      - console
+      - effect
+      - foreign
+      - foreign-object
+      - literals
+      - maybe
+      - newtype
+      - psci-support
+      - tuples
+      - unsafe-coerce
   variant:
     type: registry
     version: 8.0.0
@@ -1205,6 +1523,15 @@ packages:
       - foreign
       - media-types
       - web-dom
+  web-html:
+    type: registry
+    version: 4.1.0
+    integrity: sha256-ByqS/h1/yG+hjCOnOQp7L1QpIWzQENNKB1kaHtpEhlE=
+    dependencies:
+      - js-date
+      - web-dom
+      - web-file
+      - web-storage
   web-socket:
     type: registry
     version: 4.0.0
@@ -1212,3 +1539,70 @@ packages:
     dependencies:
       - arraybuffer-types
       - web-file
+  web-storage:
+    type: registry
+    version: 5.0.0
+    integrity: sha256-q+6lxcnfWxus0/nDeFVtF1V+tLehZvvXQ0cduYPLksY=
+    dependencies:
+      - nullable
+      - web-events
+  web-streams:
+    type: registry
+    version: 4.0.0
+    integrity: sha256-02HgXIk6R+pU9fWOX42krukAI1QkCbLKcCv3b4Jq6WI=
+    dependencies:
+      - arraybuffer-types
+      - effect
+      - exceptions
+      - js-promise
+      - nullable
+      - prelude
+      - tuples
+  yoga-json:
+    type: registry
+    version: 5.1.0
+    integrity: sha256-ei/fyvrh8fGgcqGrdRQ7+r6dwSYcfEGOFf5yKc1g7oE=
+    dependencies:
+      - arrays
+      - bifunctors
+      - control
+      - datetime
+      - effect
+      - either
+      - exceptions
+      - foldable-traversable
+      - foreign
+      - foreign-object
+      - free
+      - identity
+      - integers
+      - js-bigints
+      - js-date
+      - lists
+      - maybe
+      - newtype
+      - nullable
+      - numbers
+      - ordered-collections
+      - partial
+      - prelude
+      - record
+      - strings
+      - transformers
+      - tuples
+      - typelevel-prelude
+      - unsafe-coerce
+      - variant
+      - yoga-tree
+  yoga-tree:
+    type: registry
+    version: 1.0.0
+    integrity: sha256-wBjfEYrX1ffTHa/mE9B26C6td0FFfjYNnysTJ9/N8Hc=
+    dependencies:
+      - arrays
+      - control
+      - foldable-traversable
+      - free
+      - maybe
+      - prelude
+      - tailrec

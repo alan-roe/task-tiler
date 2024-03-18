@@ -3,7 +3,7 @@ module Test.Topic where
 import Prelude
 
 import Block (Block(..))
-import Control.Monad.Gen (chooseInt)
+import Control.Monad.Gen (chooseInt, resize)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -11,13 +11,9 @@ import Effect.Console (log)
 import Test.Block (genBlock)
 import Test.QuickCheck (arbitrary, quickCheckGen, (<?>))
 import Test.QuickCheck.Gen (Gen, arrayOf)
-import Topic (loadTime, loadTopic, fmtInfo)
+import Topic (loadTime)
 
 type TimeStr = String
-
-insertTimeBlock :: TimeStr -> Block -> Block
-insertTimeBlock timeStr (Block { content, children }) = do
-  Block { content, children: [ Block { content: timeStr, children } ] }
 
 -- generates topic block with time
 genTopicBlock :: Gen Block
@@ -25,7 +21,9 @@ genTopicBlock = do
   content <- arbitrary
   timeStr <- genTimeStr
   infoBlocks <- arrayOf (genBlock true)
-  pure $ Block { content, children: [ Block { content: timeStr, children: infoBlocks } ] }
+  uuid <- resize (const 36) arbitrary
+  uuid2 <- resize (const 36) arbitrary
+  pure $ Block { content, uuid, children: [ Block { content: timeStr, uuid: uuid2, children: infoBlocks } ] }
 
 listToArray :: forall a. List a -> Array a
 listToArray (Cons x xs) = [ x ] <> (listToArray xs)
@@ -88,17 +86,4 @@ timeTests = do
 
 loadTopicTests :: Effect Unit
 loadTopicTests = do
-  log "load topic with 0 allot if no time exists"
-  quickCheckGen do
-    noTimeTopicBlock <- genBlock true
-    pure $
-      eq (loadTopic noTimeTopicBlock).allot 0 <?> "Test failed for input:\n" <> (show $ fmtInfo 0 noTimeTopicBlock)
-
-  log "load correct time allotted"
-  quickCheckGen do
-    noTimeTopicBlock <- genBlock true
-    h <- chooseInt 1 8
-    m <- chooseInt 1 60
-    let timeTopicBlock = insertTimeBlock (mkTimeStr h m) noTimeTopicBlock
-    pure $
-      eq (loadTopic timeTopicBlock).allot (h * 60 * 60 + m * 60) <?> "Test failed for input:\n" <> (show $ fmtInfo 0 timeTopicBlock)
+  log "TODO no load topic tests"

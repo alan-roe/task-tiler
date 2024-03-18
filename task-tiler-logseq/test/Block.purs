@@ -16,10 +16,12 @@ genBlock c = resize (min 6) $ sized genBlock'
     | size > 1 && c = resize (_ - 1) genChildren
     | otherwise = do
         content <- arbitrary
-        pure $ Block { content: content, children: [] }
+        uuid <- resize (const 36) arbitrary
+        pure $ Block { content: content, uuid: uuid, children: [] }
 
   genChildren :: Gen Block
   genChildren = do
     content <- arbitrary
     children <- arrayOf $ genBlock true
-    pure $ Block { content: content, children: children }
+    uuid <- resize (const 36) arbitrary
+    pure $ Block { content: content, uuid: uuid, children: children }

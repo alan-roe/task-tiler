@@ -11,11 +11,15 @@ package:
     - prelude
     - quickcheck
     - simple-json
+    - supabase
     - web-socket
   test:
     main: Test.Main
     dependencies: []
 workspace:
   package_set:
-    registry: 48.4.0
-  extra_packages: {}
+    registry: 50.1.2
+  extra_packages:
+    supabase:
+      git: https://github.com/alan-roe/purescript-supabase.git
+      ref: 26bbe69927218d577508eaea000aab15928951c7

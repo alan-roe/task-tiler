@@ -5,8 +5,9 @@ import Prelude
 import Block (loadBlocks)
 import Data.Array (any)
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String (Pattern(..), contains)
+import Data.Traversable (sequence)
 import Effect (Effect)
 import Effect.AVar (AVar, new, tryPut, tryRead, tryTake) as AV
 import Effect.Aff (Aff)
@@ -15,8 +16,9 @@ import Effect.Class.Console (logShow)
 import Effect.Console (log)
 import Effect.Timer (setInterval)
 import Logseq (ready, showMsg)
-import Logseq.Editor (BlockEntity(..), getBlock, getCurrentBlock, registerSlashCommand)
+import Logseq.Editor (BlockEntity(..), getBlock, getCurrentBlock, registerSlashCommand, settings, useSettingsSchema)
 import Simple.JSON (writeJSON)
+import Supabase (FunctionResponse, createClient, rpc, signInWithPassword)
 import Topic (loadTopic)
 import Web.Socket.ReadyState (ReadyState(..)) as RS
 import Web.Socket.WebSocket (WebSocket, create, readyState, sendString)
@@ -42,7 +44,7 @@ sendTasks avarWs = do
           _ <- showMsg "Task Tiler: Invalid task tiler block, no children"
           pure unit
         BlockEntity { children: (Just childs) } -> do
-          json <- writeJSON <<< map loadTopic <$> loadBlocks childs
+          json <- writeJSON <<< map loadTopic <<< fromMaybe [] <$> (loadBlocks childs)
           logShow $ json
           liftEffect do
             maybeWs <- AV.tryRead avarWs
@@ -93,20 +95,18 @@ actualMain = do
   websocket <- create "ws://localhost:8080/websocket" []
   avarWs <- AV.new websocket
   _ <- setInterval 5000 $ keepWsAlive avarWs
-  useSettingsSchema [
-      {
-        key: "supabaseEmail",
-        type: "string",
-        title: "Task-Tiler Email",
-        description: "",
-        default: ""
-      },
-      {
-        key: "supabasePassword",
-        type: "string",
-        title: "Task-Tiler Password",
-        description: "",
-        default: ""
+  useSettingsSchema
+    [ { key: "supabaseEmail"
+      , type: "string"
+      , title: "Task-Tiler Email"
+      , description: ""
+      , default: ""
+      }
+    , { key: "supabasePassword"
+      , type: "string"
+      , title: "Task-Tiler Password"
+      , description: ""
+      , default: ""
       }
     ]
   registerSlashCommand "tiler" (sendTasks avarWs)

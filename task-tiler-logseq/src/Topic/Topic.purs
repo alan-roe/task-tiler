@@ -2,26 +2,40 @@ module Topic where
 
 import Prelude
 
-import Block (Block(..))
+import Block as B
 import Data.Array (concatMap, cons, mapMaybe)
 import Data.Foldable (sum)
 import Data.Int (fromString)
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.String (Pattern(..), split, stripPrefix, take, trim)
 import Topic.Checkbox (CheckboxState(..), checkboxState)
 
-type Info =
-  { info :: String
-  , tabs :: Int
+type Logbook =
+  { start :: String
+  , end :: String
+  }
+
+type Block =
+  { uuid :: String
+  , text :: String
   , checkbox :: CheckboxState
+  , logbook :: Maybe Logbook
+  }
+
+type Info =
+  { block :: Block
+  , indent :: Int
+  }
+
+type TimeAllotment =
+  { seconds :: Int
+  , block :: Block
   }
 
 type Topic =
-  { title :: String
-  , allot :: Int
-  , spent :: Int
+  { title :: Block
+  , time_allotment :: Maybe TimeAllotment
   , info :: Array Info
-  , checkbox :: CheckboxState
   }
 
 loadTime :: String -> Maybe Int
@@ -50,8 +64,8 @@ loadTime s =
 -- :LOGBOOK:
 -- CLOCK: [2024-02-05 Mon 18:52:11]--[2024-02-05 Mon 19:06:29] =>  00:14:18
 -- :END:
-loadSpent :: Block -> Int
-loadSpent (Block { content, children }) = readLogbook content + (sum $ map loadSpent children)
+loadSpent :: B.Block -> Int
+loadSpent (B.Block { content, children }) = readLogbook content + (sum $ map loadSpent children)
   where
   readLogbook :: String -> Int
   readLogbook s =
@@ -70,10 +84,10 @@ tabs ∷ Int → String
 tabs 0 = ""
 tabs n = "  " <> tabs (n - 1)
 
-fmtInfo :: Int -> Block -> Array Info
-fmtInfo n (Block { content, children }) =
+fmtInfo :: Int -> B.Block -> Array Info
+fmtInfo n (B.Block { content, uuid, children }) =
   cons
-    { info: strip content, tabs: n, checkbox: checkboxState content }
+    { block: { uuid: uuid, text: strip content, checkbox: checkboxState content, logbook: Nothing }, indent: n }
     (concatMap (fmtInfo (n + 1)) children)
   where
   strip = removeTodo <<< removeLogbook
@@ -84,7 +98,7 @@ removeTodo s =
     [ stripped ] -> stripped
     _ -> s
 
-loadInfo :: Array Block -> Array Info
+loadInfo :: Array B.Block -> Array Info
 loadInfo blocks = concatMap (fmtInfo 0) blocks
 
 removeLogbook :: String -> String
@@ -93,27 +107,23 @@ removeLogbook s =
     [ logRemoved, _ ] -> trim logRemoved
     _ -> s
 
-loadTitle :: String -> String
-loadTitle = removeLogbook <<< removeTodo
+loadBlock :: String -> String -> Block
+loadBlock text uuid = { uuid: uuid, text: (removeLogbook <<< removeTodo) text, checkbox: None, logbook: Nothing }
 
-loadTopic :: Block -> Topic
-loadTopic block@(Block { content: title, children }) =
+loadTopic :: B.Block -> Topic
+loadTopic (B.Block { content: title, uuid: title_uuid, children }) =
   case children of
     -- just one direct child, potentially time or info
-    [ Block { content: childContent, children: childChildren } ] ->
-      { title: loadTitle title
-      , allot: fromMaybe 0 allot
-      , spent: loadSpent block
+    [ B.Block { content: childContent, uuid, children: childChildren } ] ->
+      { title: loadBlock title title_uuid
+      , time_allotment: maybe Nothing (\x -> Just { seconds: x, block: loadBlock childContent uuid }) allot
       , info: if validTime then loadInfo childChildren else loadInfo children
-      , checkbox: None
       }
       where
       validTime = isJust $ allot
       allot = loadTime childContent
     _ ->
-      { title: loadTitle title
-      , allot: 0
-      , spent: loadSpent block
+      { title: loadBlock title title_uuid
+      , time_allotment: Nothing
       , info: loadInfo children
-      , checkbox: None
       }
