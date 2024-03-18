@@ -4,6 +4,12 @@ export function registerSlashCommandImpl(name, f) {
   };
 }
 
+export const useSettingsSchema = (settingsTemplate) => () => window.logseq.useSettingsSchema(settingsTemplate)
+
+export const settings = (key) => () => {
+  return window.logseq.settings[key];
+}
+
 function getEntity(entity, tuple, b) {
   if (b.uuid) {
     return entity(b);
@@ -20,6 +26,7 @@ function loadBlock(just, nothing, left, right, block) {
   }
   return {
     parent: block.parent.id,
+    uuid: block.uuid,
     children: childrenArr.length > 0 ? just(childrenArr) : nothing,
     content: block.content,
   };

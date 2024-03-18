@@ -2,9 +2,12 @@ module Logseq.Editor
   ( BlockEntity(..)
   , BlockUUID
   , EntityID
+  , SettingsSchema
   , getBlock
   , getCurrentBlock
   , registerSlashCommand
+  , settings
+  , useSettingsSchema
   ) where
 
 import Prelude
@@ -26,6 +29,7 @@ type EntityID = Int
 
 newtype BlockEntity = BlockEntity
   { parent :: EntityID
+  , uuid :: String
   , children :: Maybe (Array (Either BlockEntity BlockUUID))
   , content :: String
   }
@@ -43,3 +47,15 @@ getBlock e = toAffE
   case e of
     Left n -> getBlockNImpl Just Nothing Left Right n
     Right u -> getBlockUImpl Just Nothing Left Right u
+
+type SettingsSchema =
+  { key :: String
+  , type :: String
+  , title :: String
+  , description :: String
+  , default :: String
+  }
+
+foreign import useSettingsSchema :: Array SettingsSchema -> Effect Unit
+
+foreign import settings :: String -> Effect String

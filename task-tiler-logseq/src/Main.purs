@@ -65,11 +65,50 @@ keepWsAlive avarWs = do
     RS.Closed -> replaceSocket avarWs
     _ -> pure unit
 
+testBase ∷ Aff Unit
+testBase = do
+  client <- liftEffect $ createClient "https://yoknygfcsvbbnkjfeyib.supabase.co" "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlva255Z2Zjc3ZiYm5ramZleWliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDg5NjI3NTMsImV4cCI6MjAyNDUzODc1M30.ymA3I_ouyrf8bDS_C2gIHjzxDw3Fvcm52DZ7WagkOU0"
+  -- TODO handle auth failure
+  email <- liftEffect $ settings "supabaseEmail"
+  password <- liftEffect $ settings "supabasePassword"
+  _ <- signInWithPassword client { email, password }
+  mBlock <- getCurrentBlock >>= findTaskTilerParent
+  case mBlock of
+    Nothing -> do
+      _ <- showMsg "Task Tiler: Couldn't find parent with #plan or #task-tiler tag"
+      pure unit
+    Just block -> do
+      case block of
+        BlockEntity { children: Nothing } -> do
+          _ <- showMsg "Task Tiler: Invalid task tiler block, no children"
+          pure unit
+        BlockEntity { children: (Just childs) } -> do
+          json <- map (writeJSON <<< (\x -> { task_json: x })) <<< map loadTopic <<< fromMaybe [] <$> (loadBlocks childs)
+          logShow $ json
+          _ :: Array (FunctionResponse {}) <- sequence $ map (rpc client "add_task") json
+          pure unit
+
 actualMain :: Effect Unit
 actualMain = do
   websocket <- create "ws://localhost:8080/websocket" []
   avarWs <- AV.new websocket
   _ <- setInterval 5000 $ keepWsAlive avarWs
+  useSettingsSchema [
+      {
+        key: "supabaseEmail",
+        type: "string",
+        title: "Task-Tiler Email",
+        description: "",
+        default: ""
+      },
+      {
+        key: "supabasePassword",
+        type: "string",
+        title: "Task-Tiler Password",
+        description: "",
+        default: ""
+      }
+    ]
   registerSlashCommand "tiler" (sendTasks avarWs)
 
 main :: Effect Unit
