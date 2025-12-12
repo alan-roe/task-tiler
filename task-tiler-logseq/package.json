@@ -9,7 +9,7 @@
     "build:dist": "spago build && webpack --mode=production"
   },
   "dependencies": {
-    "@logseq/libs": "^0.0.17",
+    "@logseq/libs": "^0.2.9",
     "@supabase/supabase-js": "^2.39.7"
   },
   "devDependencies": {
